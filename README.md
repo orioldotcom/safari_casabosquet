@@ -23,6 +23,12 @@ npm run dev
 
 El joc s'obre normalment a [http://localhost:3000](http://localhost:3000).
 
+Per generar la versió estàtica publicada sota `/safari/`:
+
+```bash
+npm run build:static
+```
+
 ## Comprovacions
 
 ```bash

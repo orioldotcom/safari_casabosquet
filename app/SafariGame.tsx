@@ -441,7 +441,7 @@ export function SafariGame() {
     const context = canvas.getContext("2d");
     if (!context) return;
     const mapImage = new Image();
-    mapImage.src = "/serengeti-map.png";
+    mapImage.src = `${import.meta.env.BASE_URL}serengeti-map.png`;
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
