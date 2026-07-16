@@ -34,8 +34,8 @@ type HudState = {
   status: GameStatus;
 };
 
-const WORLD = { width: 2600, height: 1700 };
-const BASE = { x: 235, y: 850 };
+const WORLD = { width: 2400, height: 1920 };
+const BASE = { x: 350, y: 1325 };
 const TARGETS: Species[] = ["Zebra", "Girafa", "Elefant"];
 const SPECIES: Species[] = ["Zebra", "Girafa", "Elefant", "Lleó", "Gasela"];
 const MAX_TIME = 210;
@@ -54,21 +54,69 @@ function seeded(index: number, salt: number) {
   return value - Math.floor(value);
 }
 
-const SCENERY = Array.from({ length: 96 }, (_, index) => ({
-  x: 360 + seeded(index, 1) * (WORLD.width - 460),
-  y: 80 + seeded(index, 2) * (WORLD.height - 160),
-  size: 16 + seeded(index, 3) * 34,
-  kind: seeded(index, 4) > 0.72 ? "rock" : "tree",
-}));
+const LAND_SHAPE: [number, number][] = [
+  [70, 790], [90, 440], [470, 185], [1020, 215], [1580, 300], [2170, 425],
+  [2335, 690], [2250, 1260], [1740, 1640], [1230, 1700], [520, 1570], [155, 1320],
+];
+
+const RIVER: [number, number][] = [
+  [1835, 390], [1930, 625], [1880, 880], [1715, 1160], [1500, 1450], [1280, 1655],
+];
+
+function pointInPolygon(x: number, y: number, polygon: [number, number][]) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    const intersects = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function distanceToSegment(
+  x: number,
+  y: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+) {
+  const lengthSquared = (bx - ax) ** 2 + (by - ay) ** 2;
+  const t = lengthSquared === 0
+    ? 0
+    : clamp(((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / lengthSquared, 0, 1);
+  return distance(x, y, ax + t * (bx - ax), ay + t * (by - ay));
+}
+
+function isPlayableLand(x: number, y: number) {
+  if (!pointInPolygon(x, y, LAND_SHAPE)) return false;
+  const onMountain = ((x - 430) / 345) ** 2 + ((y - 420) / 255) ** 2 < 1;
+  const inPond = ((x - 680) / 190) ** 2 + ((y - 850) / 105) ** 2 < 1;
+  if (onMountain || inPond) return false;
+
+  for (let index = 1; index < RIVER.length; index += 1) {
+    const [ax, ay] = RIVER[index - 1];
+    const [bx, by] = RIVER[index];
+    if (distanceToSegment(x, y, ax, ay, bx, by) < 62) return false;
+  }
+  return true;
+}
 
 function createAnimals(): Animal[] {
-  return Array.from({ length: 20 }, (_, index) => {
+  const positions: [number, number][] = [
+    [655, 1160], [1050, 980], [820, 1280], [1040, 515], [560, 1050],
+    [1010, 670], [1290, 610], [1430, 1080], [1510, 620], [1170, 1270],
+    [760, 1010], [1140, 830], [480, 930], [930, 540], [1510, 440],
+    [1710, 520], [1580, 780], [1950, 1170], [2020, 620], [2000, 990],
+  ];
+  return positions.map(([x, y], index) => {
     const species = SPECIES[index % SPECIES.length];
     return {
       id: index,
       species,
-      x: 520 + seeded(index, 7) * (WORLD.width - 700),
-      y: 180 + seeded(index, 8) * (WORLD.height - 360),
+      x,
+      y,
       angle: seeded(index, 9) * Math.PI * 2,
       speed: species === "Gasela" ? 38 : species === "Lleó" ? 16 : 24,
       turnIn: 1 + seeded(index, 10) * 4,
@@ -88,30 +136,17 @@ function createModel(): GameModel {
   };
 }
 
-function drawTree(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-) {
-  context.fillStyle = "#72512e";
-  context.fillRect(x - size * 0.08, y, size * 0.16, size * 0.65);
-  context.fillStyle = "#365d35";
-  context.beginPath();
-  context.arc(x, y - size * 0.08, size * 0.46, 0, Math.PI * 2);
-  context.arc(x - size * 0.34, y + size * 0.05, size * 0.34, 0, Math.PI * 2);
-  context.arc(x + size * 0.34, y + size * 0.05, size * 0.34, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "rgba(169, 196, 97, .35)";
-  context.beginPath();
-  context.arc(x - size * 0.12, y - size * 0.2, size * 0.22, 0, Math.PI * 2);
-  context.fill();
-}
-
 function drawAnimal(context: CanvasRenderingContext2D, animal: Animal) {
   context.save();
   context.translate(animal.x, animal.y);
   context.rotate(animal.angle);
+  context.fillStyle = "rgba(226, 244, 137, .3)";
+  context.strokeStyle = "rgba(245, 255, 196, .85)";
+  context.lineWidth = 3;
+  context.beginPath();
+  context.ellipse(0, 8, 42, 25, 0, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
   context.shadowColor = "rgba(34, 24, 11, .26)";
   context.shadowBlur = 10;
   context.shadowOffsetY = 6;
@@ -216,75 +251,59 @@ function drawWorld(
   canvas: HTMLCanvasElement,
   model: GameModel,
   flash: number,
+  mapImage: HTMLImageElement,
 ) {
-  const scale = Math.max(0.72, Math.min(1.05, canvas.width / 1200));
+  const viewportWidth = canvas.clientWidth;
+  const viewportHeight = canvas.clientHeight;
+  const pixelRatio = canvas.width / Math.max(1, viewportWidth);
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  context.clearRect(0, 0, viewportWidth, viewportHeight);
+
+  const scale = Math.max(0.58, Math.min(1.02, viewportWidth / 1200));
   const cameraX = clamp(
-    model.vehicle.x - canvas.width / scale / 2,
+    model.vehicle.x - viewportWidth / scale / 2,
     0,
-    WORLD.width - canvas.width / scale,
+    Math.max(0, WORLD.width - viewportWidth / scale),
   );
   const cameraY = clamp(
-    model.vehicle.y - canvas.height / scale / 2,
+    model.vehicle.y - viewportHeight / scale / 2,
     0,
-    WORLD.height - canvas.height / scale,
+    Math.max(0, WORLD.height - viewportHeight / scale),
   );
 
   context.save();
   context.scale(scale, scale);
   context.translate(-cameraX, -cameraY);
-  context.fillStyle = "#cfa85e";
+  context.fillStyle = "#8a8887";
   context.fillRect(0, 0, WORLD.width, WORLD.height);
-
-  const gradient = context.createRadialGradient(1810, 640, 20, 1810, 640, 360);
-  gradient.addColorStop(0, "#93a95f");
-  gradient.addColorStop(1, "rgba(173, 157, 85, 0)");
-  context.fillStyle = gradient;
-  context.fillRect(1400, 250, 820, 820);
-
-  context.strokeStyle = "rgba(231, 208, 151, .58)";
-  context.lineWidth = 82;
-  context.lineCap = "round";
-  context.beginPath();
-  context.moveTo(BASE.x, BASE.y);
-  context.bezierCurveTo(760, 600, 1060, 1120, 1510, 790);
-  context.bezierCurveTo(1880, 520, 2100, 790, 2370, 430);
-  context.stroke();
-  context.strokeStyle = "rgba(124, 94, 48, .28)";
-  context.lineWidth = 3;
-  context.setLineDash([10, 20]);
-  context.stroke();
-  context.setLineDash([]);
-
-  context.fillStyle = "#6e9c91";
-  context.beginPath();
-  context.ellipse(1810, 640, 180, 105, -0.18, 0, Math.PI * 2);
-  context.fill();
-  context.strokeStyle = "rgba(225, 235, 199, .55)";
-  context.lineWidth = 5;
-  context.stroke();
-
-  for (const item of SCENERY) {
-    if (item.kind === "tree") {
-      drawTree(context, item.x, item.y, item.size);
-    } else {
-      context.fillStyle = "#8e744e";
-      context.beginPath();
-      context.ellipse(item.x, item.y, item.size * 0.44, item.size * 0.3, 0.4, 0, Math.PI * 2);
-      context.fill();
-    }
+  if (mapImage.complete && mapImage.naturalWidth > 0) {
+    context.drawImage(mapImage, 0, 0, WORLD.width, WORLD.height);
   }
 
-  context.fillStyle = "#4e3320";
-  context.fillRect(80, BASE.y - 145, 240, 290);
-  context.fillStyle = "#e7d7ad";
-  context.fillRect(92, BASE.y - 133, 216, 266);
-  context.fillStyle = "#365d35";
-  context.fillRect(205, BASE.y - 133, 103, 266);
+  context.fillStyle = "rgba(29, 55, 34, .18)";
+  context.strokeStyle = "#e9f59f";
+  context.lineWidth = 5;
+  context.beginPath();
+  context.arc(BASE.x, BASE.y, 92, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.fillStyle = "rgba(24, 43, 27, .88)";
+  context.fillRect(BASE.x - 76, BASE.y - 112, 152, 42);
   context.fillStyle = "#fff8df";
-  context.font = "700 22px sans-serif";
-  context.fillText("CAMP BASE", 106, BASE.y - 95);
-  context.font = "15px sans-serif";
-  context.fillText("Entrada / meta", 106, BASE.y - 67);
+  context.font = "700 18px sans-serif";
+  context.textAlign = "center";
+  context.fillText("CAMP BASE", BASE.x, BASE.y - 84);
+  context.textAlign = "start";
+  context.fillStyle = "#e5d49e";
+  context.beginPath();
+  context.moveTo(BASE.x - 42, BASE.y + 22);
+  context.lineTo(BASE.x, BASE.y - 40);
+  context.lineTo(BASE.x + 42, BASE.y + 22);
+  context.closePath();
+  context.fill();
+  context.strokeStyle = "#654728";
+  context.lineWidth = 5;
+  context.stroke();
 
   for (const animal of model.animals) drawAnimal(context, animal);
 
@@ -309,7 +328,7 @@ function drawWorld(
 
   if (flash > 0) {
     context.fillStyle = `rgba(255,255,245,${flash * 0.65})`;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, viewportWidth, viewportHeight);
   }
 }
 
@@ -353,7 +372,7 @@ export function SafariGame() {
   const startGame = useCallback(() => {
     if (modelRef.current.status !== "ready") resetGame();
     modelRef.current.status = "playing";
-    setMessage("Safari iniciat. Segueix la pista i observa la sabana!");
+    setMessage("Safari iniciat. Explora el mapa i vigila amb la muntanya, l'estany i el riu!");
     syncHud();
   }, [resetGame, syncHud]);
 
@@ -421,6 +440,8 @@ export function SafariGame() {
     if (!canvas) return;
     const context = canvas.getContext("2d");
     if (!context) return;
+    const mapImage = new Image();
+    mapImage.src = "/serengeti-map.png";
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
@@ -453,16 +474,14 @@ export function SafariGame() {
         if (Math.abs(model.vehicle.speed) > 3) {
           model.vehicle.angle += steering * 1.7 * delta * Math.sign(model.vehicle.speed);
         }
-        model.vehicle.x = clamp(
-          model.vehicle.x + Math.cos(model.vehicle.angle) * model.vehicle.speed * delta,
-          70,
-          WORLD.width - 70,
-        );
-        model.vehicle.y = clamp(
-          model.vehicle.y + Math.sin(model.vehicle.angle) * model.vehicle.speed * delta,
-          70,
-          WORLD.height - 70,
-        );
+        const nextVehicleX = model.vehicle.x + Math.cos(model.vehicle.angle) * model.vehicle.speed * delta;
+        const nextVehicleY = model.vehicle.y + Math.sin(model.vehicle.angle) * model.vehicle.speed * delta;
+        if (isPlayableLand(nextVehicleX, nextVehicleY)) {
+          model.vehicle.x = nextVehicleX;
+          model.vehicle.y = nextVehicleY;
+        } else {
+          model.vehicle.speed *= -0.18;
+        }
         model.fuel = Math.max(0, model.fuel - Math.abs(model.vehicle.speed) * delta * 0.0023);
         model.timeLeft = Math.max(0, model.timeLeft - delta);
 
@@ -482,12 +501,14 @@ export function SafariGame() {
               animal.speed += (24 - animal.speed) * 0.6;
             }
           }
-          animal.x += Math.cos(animal.angle) * animal.speed * delta;
-          animal.y += Math.sin(animal.angle) * animal.speed * delta;
-          if (animal.x < 380 || animal.x > WORLD.width - 90) animal.angle = Math.PI - animal.angle;
-          if (animal.y < 80 || animal.y > WORLD.height - 80) animal.angle = -animal.angle;
-          animal.x = clamp(animal.x, 380, WORLD.width - 90);
-          animal.y = clamp(animal.y, 80, WORLD.height - 80);
+          const nextAnimalX = animal.x + Math.cos(animal.angle) * animal.speed * delta;
+          const nextAnimalY = animal.y + Math.sin(animal.angle) * animal.speed * delta;
+          if (isPlayableLand(nextAnimalX, nextAnimalY)) {
+            animal.x = nextAnimalX;
+            animal.y = nextAnimalY;
+          } else {
+            animal.angle += Math.PI * (0.72 + seeded(animal.id, Math.floor(now / 500)) * 0.56);
+          }
         }
 
         const allTargets = TARGETS.every((target) => model.photographed.has(target));
@@ -506,7 +527,7 @@ export function SafariGame() {
       }
 
       flashRef.current = Math.max(0, flashRef.current - delta * 4.6);
-      drawWorld(context, canvas, model, flashRef.current);
+      drawWorld(context, canvas, model, flashRef.current, mapImage);
       hudClockRef.current += delta;
       if (hudClockRef.current > 0.15) {
         hudClockRef.current = 0;

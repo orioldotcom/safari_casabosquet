@@ -35,6 +35,7 @@ npm test
 - `app/SafariGame.tsx`: lògica del joc i dibuix del món amb Canvas.
 - `app/globals.css`: disseny, adaptació a mòbil i controls tàctils.
 - `app/page.tsx`: entrada de la pàgina.
+- `public/serengeti-map.png`: mapa isomètric original creat per la família.
 - `tests/rendered-html.test.mjs`: comprovació bàsica de la versió compilada.
 
 ## Abast d'aquesta versió
