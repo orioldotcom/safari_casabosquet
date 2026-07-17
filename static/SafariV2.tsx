@@ -185,14 +185,14 @@ export function SafariV2() {
       [-92, 48],
     ];
     for (const [x, z] of cheetahPositions) {
-      const animal = new THREE.Mesh(new THREE.PlaneGeometry(11.2, 8.95), cheetahMaterial);
-      animal.position.set(x, 4.48, z);
+      const animal = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.92), cheetahMaterial);
+      animal.position.set(x, 0.96, z);
       animal.userData.photoTarget = true;
       scene.add(animal);
       cheetahs.push(animal);
 
       const shadow = new THREE.Mesh(
-        new THREE.CircleGeometry(4.4, 20),
+        new THREE.CircleGeometry(1.35, 20),
         new THREE.MeshBasicMaterial({ color: 0x342718, transparent: true, opacity: 0.34 }),
       );
       shadow.rotation.x = -Math.PI / 2;
@@ -277,7 +277,7 @@ export function SafariV2() {
       player.speed *= Math.pow(0.22, delta);
       player.speed = THREE.MathUtils.clamp(player.speed, -5.5, 17);
 
-      const steering = (left ? 1 : 0) - (right ? 1 : 0);
+      const steering = (right ? 1 : 0) - (left ? 1 : 0);
       if (Math.abs(player.speed) > 0.12) {
         player.yaw += steering * 1.22 * delta * Math.sign(player.speed);
       }
