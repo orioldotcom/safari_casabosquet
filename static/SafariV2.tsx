@@ -171,7 +171,7 @@ export function SafariV2() {
 
     const cheetahs: THREE.Mesh[] = [];
     const cheetahTexture = new THREE.TextureLoader().load(
-      `${import.meta.env.BASE_URL}animals/cheetah.png`,
+      `${import.meta.env.BASE_URL}animals/cheetah.png?v=2`,
     );
     cheetahTexture.colorSpace = THREE.SRGBColorSpace;
     const cheetahMaterial = new THREE.MeshBasicMaterial({
