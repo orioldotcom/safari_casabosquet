@@ -370,12 +370,32 @@ export function SafariV2() {
             Condueix lliurement des del seient del 4x4. El riu i els límits rocosos
             marquen la zona explorable. Troba un guepard, centra&apos;l al visor i fotografia&apos;l.
           </p>
-          <div className="briefing-rules">
-            <div><strong>WASD</strong><span>Conduir</span></div>
-            <div><strong>ESPAI</strong><span>Fotografia</span></div>
-            <div><strong>R</strong><span>Recol·locar</span></div>
-          </div>
-          <button className="start-v2" onClick={startGame}>Pujar al 4x4</button>
+          <section className="mission-steps" aria-labelledby="mission-steps-title">
+            <h2 id="mission-steps-title">La teva missió</h2>
+            <ol>
+              <li><b>1</b><span><strong>Explora</strong>Condueix pel parc sense travessar el riu.</span></li>
+              <li><b>2</b><span><strong>Busca</strong>Localitza un guepard entre la vegetació.</span></li>
+              <li><b>3</b><span><strong>Fotografia</strong>Centra&apos;l dins del visor i fes la foto.</span></li>
+            </ol>
+          </section>
+          <section className="control-guide" aria-labelledby="control-guide-title">
+            <h2 id="control-guide-title">Com es juga</h2>
+            <div className="control-guide-grid">
+              <div>
+                <h3>Ordinador</h3>
+                <p><kbd>WASD</kbd> o <kbd>Fletxes</kbd><span>Conduir</span></p>
+                <p><kbd>Espai</kbd><span>Fer una fotografia</span></p>
+                <p><kbd>R</kbd><span>Tornar al camp base</span></p>
+              </div>
+              <div>
+                <h3>Mòbil o tauleta</h3>
+                <p><kbd>▲ ◀ ▼ ▶</kbd><span>Conduir</span></p>
+                <p><kbd>FOTO</kbd><span>Fer una fotografia</span></p>
+              </div>
+            </div>
+          </section>
+          <p className="briefing-tip"><strong>Recorda:</strong> si arribes al límit del parc o al riu, gira i busca un altre camí.</p>
+          <button className="start-v2" onClick={startGame}>Entès, comença el safari</button>
         </section>
       </main>
     );
