@@ -1,0 +1,359 @@
+@import "tailwindcss";
+
+:root {
+  --v2-ink: #172219;
+  --v2-paper: #f4eddc;
+  --v2-accent: #dceb83;
+  --v2-forest: #173d2a;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--v2-paper);
+  background: #13251b;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+button, a { font: inherit; }
+button { cursor: pointer; }
+
+.v2-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(221, 235, 137, .18), transparent 33rem),
+    linear-gradient(145deg, #10231a, #1f3b28 58%, #293d29);
+}
+
+.park-select { padding: clamp(28px, 5vw, 72px); }
+.park-hero { max-width: 760px; margin-bottom: 36px; }
+.v2-kicker {
+  margin: 0 0 9px;
+  color: #cddd86;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.park-hero h1, .briefing-panel h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 7vw, 86px);
+  line-height: .95;
+  letter-spacing: -.04em;
+}
+.park-hero > p:last-child {
+  max-width: 560px;
+  margin: 17px 0 0;
+  color: #c4cbbd;
+  font-size: 16px;
+}
+
+.park-grid {
+  width: min(1240px, 100%);
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 16px;
+}
+.park-card {
+  min-height: 520px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  color: var(--v2-ink);
+  background: var(--v2-paper);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 24px 70px rgba(5, 15, 10, .28);
+}
+.park-card-art {
+  min-height: 240px;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(.9) contrast(1.04);
+}
+.park-serengeti .park-card-art {
+  background-image:
+    linear-gradient(to top, rgba(24, 45, 28, .3), transparent 55%),
+    url("/safari/serengeti-map.png");
+}
+.park-kruger .park-card-art {
+  background:
+    radial-gradient(circle at 68% 33%, #c8b260 0 5%, transparent 6%),
+    linear-gradient(150deg, #617543, #b29a55 55%, #755a36);
+}
+.park-yellowstone .park-card-art {
+  background: linear-gradient(155deg, #3f655a, #85a4a1 45%, #c9b77c 46%, #5d754b);
+}
+.park-card-copy { padding: 24px; }
+.park-card-copy > span {
+  color: #6c755f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.park-card h2 {
+  margin: 7px 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+}
+.park-card p {
+  min-height: 42px;
+  margin: 0 0 18px;
+  color: #687064;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.park-card button, .start-v2 {
+  width: 100%;
+  padding: 13px 16px;
+  color: #f7f2df;
+  background: var(--v2-forest);
+  border: 0;
+  font-size: 13px;
+  font-weight: 900;
+}
+.park-card button:disabled {
+  cursor: default;
+  color: #7b7e73;
+  background: #ded8c9;
+}
+.park-card.locked { opacity: .72; }
+.legacy-link {
+  display: inline-block;
+  margin-top: 25px;
+  color: #d9e69b;
+  font-size: 13px;
+}
+
+.briefing-screen {
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(90deg, rgba(11, 28, 18, .94), rgba(11, 28, 18, .45)),
+    url("/safari/serengeti-map.png") center / cover;
+}
+.briefing-panel {
+  width: min(690px, 100%);
+  margin-right: min(28vw, 400px);
+  padding: clamp(28px, 5vw, 60px);
+  background: rgba(19, 42, 27, .91);
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 30px 90px rgba(5, 13, 8, .45);
+  backdrop-filter: blur(12px);
+}
+.briefing-panel h1 { font-size: clamp(42px, 6vw, 72px); }
+.briefing-panel > p:not(.v2-kicker) {
+  margin: 20px 0;
+  color: #d0d5c8;
+  line-height: 1.7;
+}
+.back-link {
+  margin: 0 0 32px;
+  padding: 0;
+  color: #dbe698;
+  background: transparent;
+  border: 0;
+}
+.briefing-rules {
+  margin: 26px 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.briefing-rules div {
+  padding: 13px;
+  display: grid;
+  gap: 4px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.briefing-rules strong { color: var(--v2-accent); font-size: 13px; }
+.briefing-rules span { color: #aeb8a8; font-size: 11px; }
+.start-v2 { background: var(--v2-accent); color: #183020; }
+
+.v2-game {
+  width: 100vw;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: #91b9c7;
+  user-select: none;
+}
+.v2-canvas { width: 100%; height: 100%; display: block; }
+.v2-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 72px;
+  padding: 12px clamp(14px, 3vw, 36px);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #f7f1df;
+  background: linear-gradient(rgba(9, 22, 14, .82), rgba(9, 22, 14, .1));
+}
+.v2-hud button {
+  padding: 9px 12px;
+  color: #e3ebae;
+  background: rgba(19, 45, 28, .72);
+  border: 1px solid rgba(255,255,255,.15);
+}
+.v2-hud div { display: grid; gap: 2px; }
+.v2-hud span { color: #bcc5b7; font-size: 9px; font-weight: 900; letter-spacing: .14em; }
+.v2-hud strong { font-family: Georgia, serif; font-size: 18px; }
+.v2-hud div:last-child { margin-left: auto; text-align: right; }
+.v2-hud .mission-done { color: var(--v2-accent); }
+
+.viewfinder {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: min(42vw, 480px);
+  aspect-ratio: 16 / 10;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.viewfinder i { position: absolute; width: 32px; height: 32px; border-color: rgba(255,255,235,.83); }
+.viewfinder i:nth-child(1) { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+.viewfinder i:nth-child(2) { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+.viewfinder i:nth-child(3) { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+.viewfinder i:nth-child(4) { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+.viewfinder b {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255,255,235,.82);
+  font-size: 24px;
+  font-weight: 300;
+}
+.photo-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: white;
+  opacity: 0;
+  transition: opacity .13s ease-out;
+}
+.photo-flash.visible { opacity: .86; transition: none; }
+.jeep-cockpit {
+  position: absolute;
+  left: 50%;
+  bottom: -72px;
+  width: min(780px, 76vw);
+  height: 190px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(#cbb67f, #796946);
+  border: 12px solid #2c2b24;
+  border-radius: 50% 50% 8% 8%;
+  box-shadow: 0 -10px 35px rgba(25, 21, 13, .28);
+}
+.jeep-cockpit span {
+  position: absolute;
+  top: 35px;
+  left: 50%;
+  width: 140px;
+  height: 78px;
+  transform: translateX(-50%);
+  background: #555443;
+  border: 7px solid #272720;
+  border-radius: 12px;
+}
+.jeep-cockpit b {
+  position: absolute;
+  left: 18%;
+  top: 15px;
+  width: 105px;
+  height: 105px;
+  border: 12px solid #282820;
+  border-radius: 50%;
+}
+.v2-message {
+  position: absolute;
+  left: 50%;
+  bottom: 112px;
+  width: min(620px, calc(100% - 320px));
+  padding: 12px 18px;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #f5f1df;
+  background: rgba(12, 28, 18, .82);
+  border: 1px solid rgba(255,255,255,.14);
+  font-size: 13px;
+  backdrop-filter: blur(8px);
+}
+.photo-button {
+  position: absolute;
+  right: 28px;
+  bottom: 32px;
+  width: 94px;
+  height: 94px;
+  color: #173020;
+  background: var(--v2-accent);
+  border: 7px solid rgba(21, 46, 29, .84);
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 1000;
+  box-shadow: 0 10px 35px rgba(13, 26, 17, .28);
+}
+.v2-touch {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  width: 150px;
+  height: 112px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 5px;
+}
+.v2-touch button {
+  color: #eef2d5;
+  background: rgba(17, 41, 25, .8);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px;
+  touch-action: none;
+}
+.v2-touch button:nth-child(1) { grid-column: 2; }
+.v2-touch button:nth-child(2) { grid-column: 1; grid-row: 2; }
+.v2-touch button:nth-child(3) { grid-column: 2; grid-row: 2; }
+.v2-touch button:nth-child(4) { grid-column: 3; grid-row: 2; }
+.prototype-complete {
+  position: absolute;
+  top: 86px;
+  left: 50%;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  color: #1d3522;
+  background: var(--v2-accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+@media (max-width: 850px) {
+  .park-grid { grid-template-columns: 1fr; }
+  .park-card { min-height: 430px; }
+  .briefing-panel { margin-right: 0; }
+  .viewfinder { width: 72vw; }
+  .v2-message { bottom: 126px; width: calc(100% - 32px); }
+  .jeep-cockpit { width: 82vw; height: 150px; bottom: -68px; }
+  .v2-hud { gap: 10px; }
+  .v2-hud strong { font-size: 14px; }
+}
+
+@media (max-width: 560px) {
+  .park-select { padding: 24px 16px 34px; }
+  .park-hero h1 { font-size: 46px; }
+  .park-card { min-height: 390px; }
+  .briefing-screen { padding: 12px; }
+  .briefing-panel { padding: 26px 20px; }
+  .briefing-panel h1 { font-size: 44px; }
+  .briefing-rules { grid-template-columns: 1fr; }
+  .v2-hud { min-height: 62px; padding: 9px; }
+  .v2-hud button { padding: 7px; font-size: 11px; }
+  .v2-hud span { font-size: 7px; }
+  .v2-hud strong { font-size: 12px; }
+  .photo-button { right: 14px; bottom: 18px; width: 78px; height: 78px; }
+  .v2-touch { left: 14px; bottom: 16px; width: 132px; height: 98px; }
+  .v2-message { bottom: 120px; font-size: 11px; }
+}

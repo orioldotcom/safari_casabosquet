@@ -29,6 +29,14 @@ Per generar la versió estàtica publicada sota `/safari/`:
 npm run build:static
 ```
 
+La compilació inclou dues experiències:
+
+- `/safari/`: MVP original amb vista aèria.
+- `/safari/v2/`: prototip 3D en primera persona amb selector de parc.
+
+El primer animal de la V2 és el guepard de `public/animals/cheetah.png`. L'asset
+actual és provisional i se substituirà per una versió amb fons transparent.
+
 ## Comprovacions
 
 ```bash
