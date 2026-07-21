@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { ParkConfig } from "../types";
+import { isPlayableLand } from "./terrain";
 
 function seeded(index: number, salt: number) {
   const value = Math.sin(index * 9283.17 + salt * 137.31) * 43758.5453;
@@ -69,9 +70,23 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   sun.shadow.camera.bottom = -half * 0.8;
   scene.add(sun);
 
+  const groundMaterial = new THREE.MeshStandardMaterial({
+    color: config.ground.color,
+    roughness: 1,
+  });
+  if (config.ground.texture) {
+    const mapTexture = new THREE.TextureLoader().load(
+      `${import.meta.env.BASE_URL}${config.ground.texture}`,
+    );
+    mapTexture.colorSpace = THREE.SRGBColorSpace;
+    mapTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    groundMaterial.map = mapTexture;
+    groundMaterial.color = new THREE.Color(0xffffff);
+  }
+
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(config.ground.width, config.ground.depth),
-    new THREE.MeshStandardMaterial({ color: config.ground.color, roughness: 1 }),
+    groundMaterial,
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
@@ -94,41 +109,18 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     scene.add(patch);
   }
 
-  if (config.river) {
-    const river = new THREE.Mesh(
-      new THREE.PlaneGeometry(config.river.width, config.river.length),
-      new THREE.MeshStandardMaterial({
-        color: 0x397f91,
-        roughness: 0.3,
-        metalness: 0.08,
-      }),
-    );
-    river.rotation.x = -Math.PI / 2;
-    river.rotation.z = config.river.rotation;
-    river.position.set(...config.river.position);
-    scene.add(river);
-  }
-
   const [campX, campY, campZ] = config.camp.position;
-  for (let index = 0; index < config.vegetation.treeCount; index += 1) {
-    const x = seeded(index, config.vegetation.treeSeed) * config.ground.width - config.ground.width / 2;
-    const z = seeded(index, config.vegetation.treeSeed + 100) * config.ground.depth - config.ground.depth / 2;
-    const dx = x - campX;
-    const dz = z - campZ;
-    const nearCamp = Math.hypot(dx, dz) < 22;
-    let inRiver = false;
-    if (config.river) {
-      const rdx = x - config.river.position[0];
-      const rdz = z - config.river.position[2];
-      const cos = Math.cos(-config.river.rotation);
-      const sin = Math.sin(-config.river.rotation);
-      const localX = rdx * cos - rdz * sin;
-      const localZ = rdx * sin + rdz * cos;
-      inRiver = Math.abs(localX) < config.river.localHalfWidth + 3 && Math.abs(localZ) < config.river.localHalfLength + 3;
-    }
-    if (nearCamp || inRiver) continue;
-    const scale = config.vegetation.treeScaleBase + (index % 4) * config.vegetation.treeScaleVar;
+  let placedTrees = 0;
+  let attempt = 0;
+  while (placedTrees < config.vegetation.treeCount && attempt < config.vegetation.treeCount * 20) {
+    attempt += 1;
+    const x = seeded(attempt, config.vegetation.treeSeed) * config.ground.width - config.ground.width / 2;
+    const z = seeded(attempt, config.vegetation.treeSeed + 100) * config.ground.depth - config.ground.depth / 2;
+    const nearCamp = Math.hypot(x - campX, z - campZ) < 18;
+    if (nearCamp || !isPlayableLand(x, z, config)) continue;
+    const scale = config.vegetation.treeScaleBase + (attempt % 4) * config.vegetation.treeScaleVar;
     scene.add(makeTree(x, z, scale));
+    placedTrees += 1;
   }
 
   const rockMaterial = new THREE.MeshStandardMaterial({ color: 0x665d4b, roughness: 1 });
@@ -142,9 +134,15 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     const halfW = config.bounds.halfWidth - inset;
     const halfD = config.bounds.halfDepth - inset;
     rock.position.set(
-      alongX ? -halfW + (index / (config.rocks.count / 2 - 1)) * halfW * 2 : index % 2 === 0 ? -halfW - 8 : halfW + 8,
+      alongX
+        ? -halfW + (index / (config.rocks.count / 2 - 1)) * halfW * 2
+        : index % 2 === 0
+          ? -halfW - 8
+          : halfW + 8,
       7,
-      alongX ? -halfD : -halfD + ((index - config.rocks.count / 2) / (config.rocks.count / 2 - 1)) * halfD * 2,
+      alongX
+        ? -halfD
+        : -halfD + ((index - config.rocks.count / 2) / (config.rocks.count / 2 - 1)) * halfD * 2,
     );
     rock.rotation.y = index * 0.8;
     rock.castShadow = true;
@@ -161,6 +159,13 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
 
   const photoTargets: THREE.Mesh[] = [];
   const textureCache = new Map<string, THREE.Texture>();
+  if (config.ground.texture) {
+    const mapTexture = new THREE.TextureLoader().load(
+      `${import.meta.env.BASE_URL}${config.ground.texture}`,
+    );
+    mapTexture.colorSpace = THREE.SRGBColorSpace;
+    textureCache.set(config.ground.texture, mapTexture);
+  }
   for (const animal of config.animals) {
     let texture = textureCache.get(animal.texture);
     if (!texture) {
@@ -193,16 +198,10 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   }
 
   const isBlocked = (x: number, z: number) => {
-    const insideBounds = Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
+    const insideBounds =
+      Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
     if (!insideBounds) return true;
-    if (!config.river) return false;
-    const rdx = x - config.river.position[0];
-    const rdz = z - config.river.position[2];
-    const cos = Math.cos(-config.river.rotation);
-    const sin = Math.sin(-config.river.rotation);
-    const localX = rdx * cos - rdz * sin;
-    const localZ = rdx * sin + rdz * cos;
-    return Math.abs(localX) < config.river.localHalfWidth && Math.abs(localZ) < config.river.localHalfLength;
+    return !isPlayableLand(x, z, config);
   };
 
   const cleanup = () => {

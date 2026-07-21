@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getParkConfig, PARKS } from "./v2/parks";
 import { buildScene } from "./v2/game/buildScene";
+import { Minimap } from "./v2/components/Minimap";
 
 type Screen = "parks" | "briefing" | "playing";
 type DriveControl = "forward" | "back" | "left" | "right";
@@ -22,6 +23,7 @@ export function SafariV2() {
   });
   const photoActionRef = useRef<(() => void) | null>(null);
   const photoDoneRef = useRef(false);
+  const playerRef = useRef({ x: 0, z: 0, yaw: 0, speed: 0 });
 
   const currentPark = getParkConfig(selectedParkId);
 
@@ -51,6 +53,8 @@ export function SafariV2() {
 
     const { renderer, scene, camera, player, photoTargets, isBlocked, cleanup } =
       buildScene(canvas, currentPark);
+
+    playerRef.current = player;
 
     const raycaster = new THREE.Raycaster();
     const maxPhotoDistance = 78;
@@ -122,7 +126,7 @@ export function SafariV2() {
       player.speed *= Math.pow(0.22, delta);
       player.speed = THREE.MathUtils.clamp(player.speed, -5.5, 17);
 
-      const steering = (right ? 1 : 0) - (left ? 1 : 0);
+      const steering = (left ? 1 : 0) - (right ? 1 : 0);
       if (Math.abs(player.speed) > 0.12) {
         player.yaw += steering * 1.22 * delta * Math.sign(player.speed);
       }
@@ -138,23 +142,7 @@ export function SafariV2() {
         player.speed *= -0.16;
         if (now - collisionMessageAt > 1700) {
           collisionMessageAt = now;
-          let inRiver = false;
-          if (currentPark.river) {
-            const rdx = candidateX - currentPark.river.position[0];
-            const rdz = candidateZ - currentPark.river.position[2];
-            const cos = Math.cos(-currentPark.river.rotation);
-            const sin = Math.sin(-currentPark.river.rotation);
-            const localX = rdx * cos - rdz * sin;
-            const localZ = rdx * sin + rdz * cos;
-            inRiver =
-              Math.abs(localX) < currentPark.river.localHalfWidth &&
-              Math.abs(localZ) < currentPark.river.localHalfLength;
-          }
-          setMessage(
-            inRiver
-              ? "El riu limita el pas. Busca una ruta pels extrems."
-              : "Has arribat al límit del parc.",
-          );
+          setMessage("Has arribat a una zona intransitable (riu, muntanya o límit del parc).");
         }
       }
 
@@ -296,13 +284,16 @@ export function SafariV2() {
 
   const mission = currentPark?.missions[0];
 
+  if (!currentPark) return null;
+
   return (
     <main className="v2-game">
       <canvas
         ref={canvasRef}
         className="v2-canvas"
-        aria-label={`${currentPark?.name ?? "Parc"} en primera persona`}
+        aria-label={`${currentPark.name} en primera persona`}
       />
+      <Minimap config={currentPark} playerRef={playerRef} />
       <header className="v2-hud">
         <button onClick={() => setScreen("parks")}>← Parcs</button>
         <div>

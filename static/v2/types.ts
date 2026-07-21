@@ -35,10 +35,17 @@ export type ParkConfig = {
     width: number;
     depth: number;
     color: number;
+    texture?: string;
   };
   bounds: {
     halfWidth: number;
     halfDepth: number;
+  };
+  terrain: {
+    landPolygon: [number, number][];
+    riverPolygon?: [number, number][];
+    mountain?: { x: number; z: number; rx: number; rz: number };
+    pond?: { x: number; z: number; rx: number; rz: number };
   };
   sun: {
     color: number;

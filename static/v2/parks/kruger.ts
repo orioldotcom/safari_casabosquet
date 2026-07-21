@@ -22,6 +22,14 @@ export const kruger: ParkConfig = {
     halfWidth: 165,
     halfDepth: 130,
   },
+  terrain: {
+    landPolygon: [
+      [-165, -130],
+      [165, -130],
+      [165, 130],
+      [-165, 130],
+    ],
+  },
   sun: {
     color: 0xfff0c4,
     intensity: 2.9,

@@ -260,6 +260,29 @@ button { cursor: pointer; }
 .v2-hud div:last-child { margin-left: auto; text-align: right; }
 .v2-hud .mission-done { color: var(--v2-accent); }
 
+.v2-minimap {
+  position: absolute;
+  top: 86px;
+  right: 18px;
+  z-index: 2;
+  width: 150px;
+  height: 120px;
+  border: 2px solid rgba(255, 255, 255, .3);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .v2-minimap {
+    top: 72px;
+    right: 10px;
+    width: 110px;
+    height: 88px;
+  }
+}
+
 .viewfinder {
   position: absolute;
   inset: 50% auto auto 50%;
