@@ -265,8 +265,8 @@ button { cursor: pointer; }
   top: 86px;
   right: 18px;
   z-index: 2;
-  width: 150px;
-  height: 120px;
+  width: 240px;
+  height: 192px;
   border: 2px solid rgba(255, 255, 255, .3);
   border-radius: 8px;
   background: rgba(0, 0, 0, .25);
@@ -274,12 +274,19 @@ button { cursor: pointer; }
   pointer-events: none;
 }
 
+@media (max-width: 850px) {
+  .v2-minimap {
+    width: 180px;
+    height: 144px;
+  }
+}
+
 @media (max-width: 560px) {
   .v2-minimap {
     top: 72px;
     right: 10px;
-    width: 110px;
-    height: 88px;
+    width: 140px;
+    height: 112px;
   }
 }
 

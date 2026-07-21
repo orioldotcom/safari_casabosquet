@@ -6,6 +6,9 @@ type MinimapProps = {
   playerRef: React.MutableRefObject<{ x: number; z: number; yaw: number; speed: number }>;
 };
 
+const WIDTH = 240;
+const HEIGHT = 192;
+
 export function Minimap({ config, playerRef }: MinimapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapImageRef = useRef<HTMLImageElement | null>(null);
@@ -24,32 +27,53 @@ export function Minimap({ config, playerRef }: MinimapProps) {
       };
     }
 
+    const scaleX = WIDTH / config.ground.width;
+    const scaleY = HEIGHT / config.ground.depth;
+
+    const worldToCanvas = (x: number, z: number) => ({
+      x: (x + config.ground.width / 2) * scaleX,
+      y: (z + config.ground.depth / 2) * scaleY,
+    });
+
     let frameId = 0;
     const draw = () => {
-      const width = canvas.width;
-      const height = canvas.height;
-      context.clearRect(0, 0, width, height);
+      context.clearRect(0, 0, WIDTH, HEIGHT);
 
       if (mapImageRef.current) {
-        context.drawImage(mapImageRef.current, 0, 0, width, height);
+        context.drawImage(mapImageRef.current, 0, 0, WIDTH, HEIGHT);
       } else {
         context.fillStyle = "#bda05a";
-        context.fillRect(0, 0, width, height);
+        context.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      const scaleX = width / config.ground.width;
-      const scaleY = height / config.ground.depth;
-      const playerX = (playerRef.current.x + config.ground.width / 2) * scaleX;
-      const playerY = (playerRef.current.z + config.ground.depth / 2) * scaleY;
+      const camp = worldToCanvas(config.camp.position[0], config.camp.position[2]);
+      context.fillStyle = "#d8bd7a";
+      context.beginPath();
+      context.moveTo(camp.x, camp.y - 6);
+      context.lineTo(camp.x + 5, camp.y + 4);
+      context.lineTo(camp.x - 5, camp.y + 4);
+      context.closePath();
+      context.fill();
 
+      context.fillStyle = "#5aa356";
+      for (const animal of config.animals) {
+        for (const [x, z] of animal.positions) {
+          const pos = worldToCanvas(x, z);
+          context.beginPath();
+          context.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      const player = worldToCanvas(playerRef.current.x, playerRef.current.z);
       context.save();
-      context.translate(playerX, playerY);
+      context.translate(player.x, player.y);
       context.rotate(playerRef.current.yaw);
       context.fillStyle = "#e36e38";
       context.beginPath();
-      context.moveTo(0, -5);
-      context.lineTo(4, 5);
-      context.lineTo(-4, 5);
+      context.moveTo(0, -7);
+      context.lineTo(5, 6);
+      context.lineTo(-5, 6);
       context.closePath();
       context.fill();
       context.restore();
@@ -64,8 +88,8 @@ export function Minimap({ config, playerRef }: MinimapProps) {
   return (
     <canvas
       ref={canvasRef}
-      width={150}
-      height={120}
+      width={WIDTH}
+      height={HEIGHT}
       className="v2-minimap"
       aria-label="Mini-mapa de la posició del vehicle"
     />

@@ -110,6 +110,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   }
 
   const [campX, campY, campZ] = config.camp.position;
+  const treeColliders: { x: number; z: number; radius: number }[] = [];
   let placedTrees = 0;
   let attempt = 0;
   while (placedTrees < config.vegetation.treeCount && attempt < config.vegetation.treeCount * 20) {
@@ -120,6 +121,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     if (nearCamp || !isPlayableLand(x, z, config)) continue;
     const scale = config.vegetation.treeScaleBase + (attempt % 4) * config.vegetation.treeScaleVar;
     scene.add(makeTree(x, z, scale));
+    treeColliders.push({ x, z, radius: 1.6 * scale });
     placedTrees += 1;
   }
 
@@ -201,7 +203,11 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     const insideBounds =
       Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
     if (!insideBounds) return true;
-    return !isPlayableLand(x, z, config);
+    if (!isPlayableLand(x, z, config)) return true;
+    for (const tree of treeColliders) {
+      if (Math.hypot(x - tree.x, z - tree.z) < tree.radius) return true;
+    }
+    return false;
   };
 
   const cleanup = () => {

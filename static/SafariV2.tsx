@@ -126,10 +126,9 @@ export function SafariV2() {
       player.speed *= Math.pow(0.22, delta);
       player.speed = THREE.MathUtils.clamp(player.speed, -5.5, 17);
 
-      const steering = (left ? 1 : 0) - (right ? 1 : 0);
-      if (Math.abs(player.speed) > 0.12) {
-        player.yaw += steering * 1.22 * delta * Math.sign(player.speed);
-      }
+      const steering = (right ? 1 : 0) - (left ? 1 : 0);
+      const turnFactor = player.speed === 0 ? 1 : Math.sign(player.speed);
+      player.yaw += steering * 1.22 * delta * turnFactor;
       const directionX = Math.sin(player.yaw);
       const directionZ = -Math.cos(player.yaw);
       const candidateX = player.x + directionX * player.speed * delta;
