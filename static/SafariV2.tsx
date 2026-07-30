@@ -90,6 +90,8 @@ export function SafariV2() {
         player.x = currentPark.playerStart.x;
         player.z = currentPark.playerStart.z;
         player.yaw = currentPark.playerStart.yaw;
+        player.cameraYaw = currentPark.playerStart.yaw;
+        player.cameraPitch = 0;
         player.speed = 0;
         setMessage("Vehicle recol·locat al camp base.");
       }
@@ -98,6 +100,34 @@ export function SafariV2() {
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.key.toLowerCase());
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+
+    const pinchRef = { startDistance: 0, startFov: camera.fov, active: false };
+    const getPinchDistance = (touches: TouchList) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.hypot(dx, dy);
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 2) {
+        pinchRef.active = true;
+        pinchRef.startDistance = getPinchDistance(event.touches);
+        pinchRef.startFov = camera.fov;
+      }
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      if (pinchRef.active && event.touches.length === 2) {
+        const distance = getPinchDistance(event.touches);
+        const scale = distance / pinchRef.startDistance;
+        camera.fov = Math.max(20, Math.min(90, pinchRef.startFov / scale));
+        camera.updateProjectionMatrix();
+      }
+    };
+    const onTouchEnd = () => {
+      pinchRef.active = false;
+    };
+    window.addEventListener("touchstart", onTouchStart);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onTouchEnd);
 
     const resize = () => {
       const width = canvas.clientWidth;
@@ -118,10 +148,10 @@ export function SafariV2() {
       previous = now;
       const keys = keysRef.current;
       const touch = touchRef.current;
-      const forward = keys.has("w") || keys.has("arrowup") || touch.forward;
-      const back = keys.has("s") || keys.has("arrowdown") || touch.back;
-      const left = keys.has("a") || keys.has("arrowleft") || touch.left;
-      const right = keys.has("d") || keys.has("arrowright") || touch.right;
+      const forward = keys.has("w") || touch.forward;
+      const back = keys.has("s") || touch.back;
+      const left = keys.has("a") || touch.left;
+      const right = keys.has("d") || touch.right;
 
       if (forward) player.speed += 17 * delta;
       if (back) player.speed -= 12 * delta;
@@ -147,9 +177,25 @@ export function SafariV2() {
         }
       }
 
+      const cameraYawSpeed = 1.1;
+      const cameraPitchSpeed = 0.9;
+      const cameraLeft = keys.has("arrowleft");
+      const cameraRight = keys.has("arrowright");
+      const cameraUp = keys.has("arrowup");
+      const cameraDown = keys.has("arrowdown");
+      if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
+      if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
+      if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
+      if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
+      player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.45, 0.35);
+
       const bob = Math.sin(now * 0.009) * Math.min(0.05, Math.abs(player.speed) * 0.004);
       camera.position.set(player.x, 3.35 + bob, player.z);
-      camera.lookAt(player.x + directionX * 10, 3.22 + bob, player.z + directionZ * 10);
+      const lookDistance = 10;
+      const lookX = player.x + Math.sin(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
+      const lookY = 3.22 + bob + Math.sin(player.cameraPitch) * lookDistance;
+      const lookZ = player.z - Math.cos(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
+      camera.lookAt(lookX, lookY, lookZ);
 
       const FLEE_DISTANCE = 38;
       const FLEE_ACCEL = 14;
@@ -230,6 +276,9 @@ export function SafariV2() {
       observer.disconnect();
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       photoActionRef.current = null;
       cleanup();
     };
@@ -313,8 +362,12 @@ export function SafariV2() {
               <div>
                 <h3>Ordinador</h3>
                 <p>
-                  <kbd>WASD</kbd> o <kbd>Fletxes</kbd>
+                  <kbd>WASD</kbd>
                   <span>Conduir</span>
+                </p>
+                <p>
+                  <kbd>Fletxes</kbd>
+                  <span>Moure la càmera</span>
                 </p>
                 <p>
                   <kbd>Espai</kbd>
@@ -330,6 +383,10 @@ export function SafariV2() {
                 <p>
                   <kbd>▲ ◀ ▼ ▶</kbd>
                   <span>Conduir</span>
+                </p>
+                <p>
+                  <kbd>2 dits</kbd>
+                  <span>Zoom</span>
                 </p>
                 <p>
                   <kbd>FOTO</kbd>

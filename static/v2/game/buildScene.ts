@@ -41,6 +41,26 @@ function makeDirtPath(x: number, z: number, width: number, length: number, rotat
   return path;
 }
 
+function makeBush(x: number, z: number, scale: number) {
+  const group = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({ color: 0x3a5c2d, roughness: 1 });
+  for (let i = 0; i < 3; i += 1) {
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry((0.5 + i * 0.15) * scale, 7, 5),
+      material,
+    );
+    sphere.position.set(
+      (Math.random() - 0.5) * 0.6 * scale,
+      (0.4 + Math.random() * 0.3) * scale,
+      (Math.random() - 0.5) * 0.6 * scale,
+    );
+    sphere.castShadow = true;
+    group.add(sphere);
+  }
+  group.position.set(x, 0, z);
+  return group;
+}
+
 export type AnimalInstance = {
   mesh: THREE.Mesh;
   shadow: THREE.Mesh;
@@ -58,7 +78,7 @@ export type BuiltScene = {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  player: { x: number; z: number; yaw: number; speed: number };
+  player: { x: number; z: number; yaw: number; speed: number; cameraYaw: number; cameraPitch: number };
   photoTargets: THREE.Mesh[];
   animals: AnimalInstance[];
   isBlocked: (x: number, z: number) => boolean;
@@ -82,6 +102,8 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     z: config.playerStart.z,
     yaw: config.playerStart.yaw,
     speed: 0,
+    cameraYaw: config.playerStart.yaw,
+    cameraPitch: 0,
   };
 
   scene.add(new THREE.HemisphereLight(0xf4e4b3, 0x455431, 2.5));
@@ -155,6 +177,22 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     scene.add(makeTree(x, z, scale));
     treeColliders.push({ x, z, radius: 1.6 * scale });
     placedTrees += 1;
+  }
+
+  let placedBushes = 0;
+  let bushAttempt = 0;
+  while (placedBushes < config.vegetation.bushCount && bushAttempt < config.vegetation.bushCount * 30) {
+    bushAttempt += 1;
+    const x = seeded(bushAttempt, config.vegetation.bushSeed) * config.ground.width - config.ground.width / 2;
+    const z = seeded(bushAttempt, config.vegetation.bushSeed + 100) * config.ground.depth - config.ground.depth / 2;
+    if (!isPlayableLand(x, z, config)) continue;
+    const nearAnimal = config.animals.some((animal) =>
+      animal.positions.some(([ax, az]) => Math.hypot(x - ax, z - az) < 4),
+    );
+    if (nearAnimal) continue;
+    const scale = config.vegetation.bushScaleBase + (bushAttempt % 4) * config.vegetation.bushScaleVar;
+    scene.add(makeBush(x, z, scale));
+    placedBushes += 1;
   }
 
   const rockMaterial = new THREE.MeshStandardMaterial({ color: 0x665d4b, roughness: 1 });

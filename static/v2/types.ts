@@ -76,6 +76,10 @@ export type ParkConfig = {
     treeSeed: number;
     treeScaleBase: number;
     treeScaleVar: number;
+    bushCount: number;
+    bushSeed: number;
+    bushScaleBase: number;
+    bushScaleVar: number;
     patchCount: number;
   };
   rocks: {
