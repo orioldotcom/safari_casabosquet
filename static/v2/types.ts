@@ -10,6 +10,16 @@ export type AnimalConfig = {
   speed: number;
   fleeSpeed: number;
   photoTarget: boolean;
+  turnRate?: number;
+  wanderRange?: number;
+};
+
+export type DirtPath = {
+  x: number;
+  z: number;
+  width: number;
+  length: number;
+  rotation: number;
 };
 
 export type Mission = {
@@ -76,6 +86,7 @@ export type ParkConfig = {
     position: [number, number, number];
     rotation: number;
   };
+  paths?: DirtPath[];
   playerStart: {
     x: number;
     z: number;

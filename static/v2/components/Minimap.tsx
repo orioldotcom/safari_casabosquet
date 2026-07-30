@@ -1,15 +1,17 @@
 import { useEffect, useRef } from "react";
 import type { ParkConfig } from "../types";
+import type { AnimalInstance } from "../game/buildScene";
 
 type MinimapProps = {
   config: ParkConfig;
   playerRef: React.MutableRefObject<{ x: number; z: number; yaw: number; speed: number }>;
+  animalsRef: React.MutableRefObject<AnimalInstance[]>;
 };
 
 const WIDTH = 240;
 const HEIGHT = 192;
 
-export function Minimap({ config, playerRef }: MinimapProps) {
+export function Minimap({ config, playerRef, animalsRef }: MinimapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapImageRef = useRef<HTMLImageElement | null>(null);
 
@@ -56,13 +58,11 @@ export function Minimap({ config, playerRef }: MinimapProps) {
       context.fill();
 
       context.fillStyle = "#5aa356";
-      for (const animal of config.animals) {
-        for (const [x, z] of animal.positions) {
-          const pos = worldToCanvas(x, z);
-          context.beginPath();
-          context.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
-          context.fill();
-        }
+      for (const animal of animalsRef.current) {
+        const pos = worldToCanvas(animal.x, animal.z);
+        context.beginPath();
+        context.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+        context.fill();
       }
 
       const player = worldToCanvas(playerRef.current.x, playerRef.current.z);

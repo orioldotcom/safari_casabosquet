@@ -44,6 +44,13 @@ export const serengeti: ParkConfig = {
     position: [-106.25, 3, 45.625],
     rotation: Math.PI / 4,
   },
+  paths: [
+    { x: 0, z: 0, width: 8, length: 220, rotation: 0 },
+    { x: 0, z: 40, width: 8, length: 260, rotation: Math.PI / 2 },
+    { x: -60, z: -30, width: 7, length: 140, rotation: Math.PI / 2 },
+    { x: 60, z: -20, width: 7, length: 130, rotation: 0.2 },
+    { x: -80, z: 60, width: 6, length: 100, rotation: -0.3 },
+  ],
   playerStart: {
     x: -106.25,
     z: 45.625,
@@ -87,9 +94,11 @@ export const serengeti: ParkConfig = {
         [-18.75, 2.5],
         [-47.5, 40],
       ],
-      speed: 0,
-      fleeSpeed: 0,
+      speed: 1.6,
+      fleeSpeed: 7,
       photoTarget: true,
+      turnRate: 0.8,
+      wanderRange: 35,
     },
   ],
   missions: [

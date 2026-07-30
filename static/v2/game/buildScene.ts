@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { ParkConfig } from "../types";
+import type { AnimalSpecies, ParkConfig } from "../types";
 import { isPlayableLand } from "./terrain";
 
 function seeded(index: number, salt: number) {
@@ -29,12 +29,38 @@ function makeTree(x: number, z: number, scale: number) {
   return group;
 }
 
+function makeDirtPath(x: number, z: number, width: number, length: number, rotation: number) {
+  const path = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, length),
+    new THREE.MeshStandardMaterial({ color: 0x8f6e42, roughness: 1 }),
+  );
+  path.rotation.x = -Math.PI / 2;
+  path.rotation.z = rotation;
+  path.position.set(x, 0.02, z);
+  path.receiveShadow = true;
+  return path;
+}
+
+export type AnimalInstance = {
+  mesh: THREE.Mesh;
+  shadow: THREE.Mesh;
+  species: AnimalSpecies;
+  x: number;
+  z: number;
+  angle: number;
+  speed: number;
+  state: "idle" | "fleeing";
+  config: AnimalConfig;
+  home: { x: number; z: number };
+};
+
 export type BuiltScene = {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   player: { x: number; z: number; yaw: number; speed: number };
   photoTargets: THREE.Mesh[];
+  animals: AnimalInstance[];
   isBlocked: (x: number, z: number) => boolean;
   cleanup: () => void;
 };
@@ -91,6 +117,12 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
+
+  if (config.paths) {
+    for (const path of config.paths) {
+      scene.add(makeDirtPath(path.x, path.z, path.width, path.length, path.rotation));
+    }
+  }
 
   for (let index = 0; index < config.vegetation.patchCount; index += 1) {
     const patch = new THREE.Mesh(
@@ -160,6 +192,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   scene.add(camp);
 
   const photoTargets: THREE.Mesh[] = [];
+  const animals: AnimalInstance[] = [];
   const textureCache = new Map<string, THREE.Texture>();
   if (config.ground.texture) {
     const mapTexture = new THREE.TextureLoader().load(
@@ -196,6 +229,19 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
       shadow.scale.y = 0.34;
       shadow.position.set(x, 0.06, z);
       scene.add(shadow);
+
+      animals.push({
+        mesh,
+        shadow,
+        species: animal.species,
+        x,
+        z,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0,
+        state: "idle",
+        config: animal,
+        home: { x, z },
+      });
     }
   }
 
@@ -222,5 +268,5 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     });
   };
 
-  return { renderer, scene, camera, player, photoTargets, isBlocked, cleanup };
+  return { renderer, scene, camera, player, photoTargets, animals, isBlocked, cleanup };
 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getParkConfig, PARKS } from "./v2/parks";
-import { buildScene } from "./v2/game/buildScene";
+import { buildScene, type AnimalInstance } from "./v2/game/buildScene";
 import { Minimap } from "./v2/components/Minimap";
 
 type Screen = "parks" | "briefing" | "playing";
@@ -24,6 +24,7 @@ export function SafariV2() {
   const photoActionRef = useRef<(() => void) | null>(null);
   const photoDoneRef = useRef(false);
   const playerRef = useRef({ x: 0, z: 0, yaw: 0, speed: 0 });
+  const animalsRef = useRef<AnimalInstance[]>([]);
 
   const currentPark = getParkConfig(selectedParkId);
 
@@ -51,10 +52,11 @@ export function SafariV2() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const { renderer, scene, camera, player, photoTargets, isBlocked, cleanup } =
+    const { renderer, scene, camera, player, photoTargets, animals, isBlocked, cleanup } =
       buildScene(canvas, currentPark);
 
     playerRef.current = player;
+    animalsRef.current = animals;
 
     const raycaster = new THREE.Raycaster();
     const maxPhotoDistance = 78;
@@ -148,9 +150,76 @@ export function SafariV2() {
       const bob = Math.sin(now * 0.009) * Math.min(0.05, Math.abs(player.speed) * 0.004);
       camera.position.set(player.x, 3.35 + bob, player.z);
       camera.lookAt(player.x + directionX * 10, 3.22 + bob, player.z + directionZ * 10);
-      for (const animal of photoTargets) {
-        animal.lookAt(camera.position.x, animal.position.y, camera.position.z);
+
+      const FLEE_DISTANCE = 38;
+      const FLEE_ACCEL = 14;
+      const IDLE_DECEL = 5;
+      for (const animal of animals) {
+        const dxToPlayer = animal.x - player.x;
+        const dzToPlayer = animal.z - player.z;
+        const distToPlayer = Math.hypot(dxToPlayer, dzToPlayer);
+        const angleFromPlayer = Math.atan2(dxToPlayer, dzToPlayer);
+
+        if (distToPlayer < FLEE_DISTANCE) {
+          animal.state = "fleeing";
+          animal.angle = angleFromPlayer;
+          animal.speed = Math.min(
+            animal.config.fleeSpeed,
+            animal.speed + FLEE_ACCEL * delta,
+          );
+        } else {
+          animal.state = "idle";
+          if (animal.speed > animal.config.speed) {
+            animal.speed -= IDLE_DECEL * delta;
+          } else if (animal.speed < animal.config.speed) {
+            animal.speed = animal.config.speed;
+          }
+
+          const wanderRange = animal.config.wanderRange ?? 30;
+          const homeDist = Math.hypot(animal.x - animal.home.x, animal.z - animal.home.z);
+          if (homeDist > wanderRange) {
+            animal.angle = Math.atan2(animal.home.x - animal.x, animal.home.z - animal.z);
+          } else if (Math.random() < 0.008) {
+            animal.angle += (Math.random() - 0.5) * Math.PI;
+          }
+        }
+
+        const turnRate = animal.config.turnRate ?? 1.2;
+        const targetAngle =
+          animal.state === "fleeing"
+            ? animal.angle
+            : Math.atan2(player.x - animal.x, player.z - animal.z);
+        let angleDiff = targetAngle - animal.angle;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        animal.angle += angleDiff * turnRate * delta;
+
+        const moveX = Math.sin(animal.angle) * animal.speed * delta;
+        const moveZ = Math.cos(animal.angle) * animal.speed * delta;
+        const nextX = animal.x + moveX;
+        const nextZ = animal.z + moveZ;
+
+        if (!isBlocked(nextX, nextZ)) {
+          animal.x = nextX;
+          animal.z = nextZ;
+          animal.mesh.position.set(animal.x, animal.config.height / 2, animal.z);
+          animal.shadow.position.set(animal.x, 0.06, animal.z);
+        } else {
+          animal.angle += Math.PI * (0.5 + Math.random() * 0.5);
+          animal.speed *= 0.5;
+        }
+
+        if (animal.state === "fleeing") {
+          animal.mesh.lookAt(
+            animal.x + Math.sin(animal.angle),
+            animal.config.height / 2,
+            animal.z + Math.cos(animal.angle),
+          );
+        } else {
+          animal.mesh.lookAt(camera.position.x, animal.config.height / 2, camera.position.z);
+        }
       }
+
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(frame);
     };
@@ -292,7 +361,7 @@ export function SafariV2() {
         className="v2-canvas"
         aria-label={`${currentPark.name} en primera persona`}
       />
-      <Minimap config={currentPark} playerRef={playerRef} />
+      <Minimap config={currentPark} playerRef={playerRef} animalsRef={animalsRef} />
       <header className="v2-hud">
         <button onClick={() => setScreen("parks")}>← Parcs</button>
         <div>
