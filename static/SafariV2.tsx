@@ -58,6 +58,44 @@ export function SafariV2() {
     playerRef.current = player;
     animalsRef.current = animals;
 
+    const isOnPath = (x: number, z: number) => {
+      if (!currentPark.paths) return false;
+      for (const path of currentPark.paths) {
+        const dx = x - path.x;
+        const dz = z - path.z;
+        const localX = dx * Math.cos(-path.rotation) - dz * Math.sin(-path.rotation);
+        const localZ = dx * Math.sin(-path.rotation) + dz * Math.cos(-path.rotation);
+        if (Math.abs(localX) < path.length / 2 && Math.abs(localZ) < path.width / 2) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const skidMaterial = new THREE.MeshBasicMaterial({
+      color: 0x3d2e1a,
+      transparent: true,
+      opacity: 0.35,
+    });
+    const skidMarks: THREE.Mesh[] = [];
+    const maxSkidMarks = 40;
+    let lastSkidAt = 0;
+    const addSkidMark = (x: number, z: number, yaw: number) => {
+      const mark = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), skidMaterial);
+      mark.rotation.x = -Math.PI / 2;
+      mark.rotation.z = yaw;
+      mark.position.set(x, 0.025, z);
+      scene.add(mark);
+      skidMarks.push(mark);
+      if (skidMarks.length > maxSkidMarks) {
+        const old = skidMarks.shift();
+        if (old) {
+          scene.remove(old);
+          old.geometry.dispose();
+        }
+      }
+    };
+
     const raycaster = new THREE.Raycaster();
     const maxPhotoDistance = 78;
 
@@ -178,6 +216,18 @@ export function SafariV2() {
         }
       }
 
+      if (Math.abs(player.speed) > 1 && isOnPath(player.x, player.z)) {
+        if (now - lastSkidAt > 180) {
+          lastSkidAt = now;
+          const rearX = player.x - directionX * 2.2;
+          const rearZ = player.z - directionZ * 2.2;
+          const leftX = -directionZ * 0.9;
+          const leftZ = directionX * 0.9;
+          addSkidMark(rearX + leftX, rearZ + leftZ, player.yaw);
+          addSkidMark(rearX - leftX, rearZ - leftZ, player.yaw);
+        }
+      }
+
       const cameraYawSpeed = 1.1;
       const cameraPitchSpeed = 0.9;
       const cameraLeft = shift && keys.has("arrowleft");
@@ -287,6 +337,11 @@ export function SafariV2() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
+      for (const mark of skidMarks) {
+        scene.remove(mark);
+        mark.geometry.dispose();
+      }
+      skidMaterial.dispose();
       photoActionRef.current = null;
       cleanup();
     };

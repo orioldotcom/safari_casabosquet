@@ -61,6 +61,46 @@ function makeBush(x: number, z: number, scale: number) {
   return group;
 }
 
+function makeBridge(x: number, z: number, width: number, length: number, rotation: number) {
+  const group = new THREE.Group();
+  const deckMaterial = new THREE.MeshStandardMaterial({ color: 0x8f6e42, roughness: 1 });
+  const railMaterial = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 1 });
+
+  const deck = new THREE.Mesh(
+    new THREE.BoxGeometry(width, 0.25, length),
+    deckMaterial,
+  );
+  deck.position.y = 0.12;
+  deck.receiveShadow = true;
+  deck.castShadow = true;
+  group.add(deck);
+
+  const railHeight = 0.45;
+  const railThick = 0.12;
+  for (const offset of [-width / 2 + 0.1, width / 2 - 0.1]) {
+    const rail = new THREE.Mesh(
+      new THREE.BoxGeometry(railThick, railHeight, length),
+      railMaterial,
+    );
+    rail.position.set(offset, railHeight / 2 + 0.12, 0);
+    rail.castShadow = true;
+    group.add(rail);
+  }
+
+  for (let i = 0; i < 5; i += 1) {
+    const post = new THREE.Mesh(
+      new THREE.BoxGeometry(width - 0.2, 0.08, railThick),
+      railMaterial,
+    );
+    post.position.set(0, railHeight + 0.12, -length / 2 + i * (length / 4));
+    group.add(post);
+  }
+
+  group.position.set(x, 0, z);
+  group.rotation.y = rotation;
+  return group;
+}
+
 export type AnimalInstance = {
   mesh: THREE.Mesh;
   shadow: THREE.Mesh;
@@ -143,6 +183,14 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   if (config.paths) {
     for (const path of config.paths) {
       scene.add(makeDirtPath(path.x, path.z, path.width, path.length, path.rotation));
+    }
+  }
+
+  const bridgeColliders: { x: number; z: number; width: number; length: number; rotation: number }[] = [];
+  if (config.bridges) {
+    for (const bridge of config.bridges) {
+      scene.add(makeBridge(bridge.x, bridge.z, bridge.width, bridge.length, bridge.rotation));
+      bridgeColliders.push(bridge);
     }
   }
 
@@ -283,10 +331,19 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     }
   }
 
+  const isOnBridge = (x: number, z: number, bridge: (typeof bridgeColliders)[number]) => {
+    const dx = x - bridge.x;
+    const dz = z - bridge.z;
+    const localX = dx * Math.cos(-bridge.rotation) - dz * Math.sin(-bridge.rotation);
+    const localZ = dx * Math.sin(-bridge.rotation) + dz * Math.cos(-bridge.rotation);
+    return Math.abs(localX) < bridge.width / 2 && Math.abs(localZ) < bridge.length / 2;
+  };
+
   const isBlocked = (x: number, z: number) => {
     const insideBounds =
       Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
     if (!insideBounds) return true;
+    if (bridgeColliders.some((bridge) => isOnBridge(x, z, bridge))) return false;
     if (!isPlayableLand(x, z, config)) return true;
     for (const tree of treeColliders) {
       if (Math.hypot(x - tree.x, z - tree.z) < tree.radius) return true;

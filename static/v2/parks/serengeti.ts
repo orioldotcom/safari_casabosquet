@@ -49,11 +49,22 @@ export const serengeti: ParkConfig = {
     rotation: Math.PI / 4,
   },
   paths: [
+    // Eix est-oest principal (creua el parc d’est a oest)
+    { x: 0, z: 0, width: 8, length: 260, rotation: Math.PI / 2 },
+    // Eix nord-sud principal (creua el parc de nord a sud)
     { x: 0, z: 0, width: 8, length: 220, rotation: 0 },
-    { x: 0, z: 40, width: 8, length: 260, rotation: Math.PI / 2 },
-    { x: -60, z: -30, width: 7, length: 140, rotation: Math.PI / 2 },
-    { x: 60, z: -20, width: 7, length: 130, rotation: 0.2 },
-    { x: -80, z: 60, width: 6, length: 100, rotation: -0.3 },
+    // Connexió des del camp base a l’eix est-oest
+    { x: -106.25, z: 22.5, width: 7, length: 45, rotation: 0 },
+    // Branca nord-est
+    { x: 50, z: 60, width: 6, length: 120, rotation: Math.PI / 2 },
+    // Branca sud-oest
+    { x: -70, z: -50, width: 6, length: 90, rotation: 0 },
+  ],
+  bridges: [
+    // Pont sobre el riu al camí est-oest
+    { x: 35, z: 0, width: 10, length: 24, rotation: Math.PI / 2 },
+    // Pont sobre el riu al camí nord-sud
+    { x: 0, z: 25, width: 10, length: 24, rotation: 0 },
   ],
   playerStart: {
     x: -106.25,

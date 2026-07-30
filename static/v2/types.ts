@@ -22,6 +22,14 @@ export type DirtPath = {
   rotation: number;
 };
 
+export type Bridge = {
+  x: number;
+  z: number;
+  width: number;
+  length: number;
+  rotation: number;
+};
+
 export type Mission = {
   id: string;
   species: AnimalSpecies;
@@ -91,6 +99,7 @@ export type ParkConfig = {
     rotation: number;
   };
   paths?: DirtPath[];
+  bridges?: Bridge[];
   playerStart: {
     x: number;
     z: number;
