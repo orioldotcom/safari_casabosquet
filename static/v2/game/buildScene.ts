@@ -194,6 +194,24 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     }
   }
 
+  const isOnPath = (x: number, z: number) => {
+    if (!config.paths) return false;
+    for (const path of config.paths) {
+      const dx = x - path.x;
+      const dz = z - path.z;
+      const localX = dx * Math.cos(-path.rotation) - dz * Math.sin(-path.rotation);
+      const localZ = dx * Math.sin(-path.rotation) + dz * Math.cos(-path.rotation);
+      const margin = 2;
+      if (
+        Math.abs(localX) < path.length / 2 + margin &&
+        Math.abs(localZ) < path.width / 2 + margin
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   for (let index = 0; index < config.vegetation.patchCount; index += 1) {
     const patch = new THREE.Mesh(
       new THREE.CircleGeometry(7 + (index % 5) * 2.2, 18),
@@ -220,7 +238,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     const x = seeded(attempt, config.vegetation.treeSeed) * config.ground.width - config.ground.width / 2;
     const z = seeded(attempt, config.vegetation.treeSeed + 100) * config.ground.depth - config.ground.depth / 2;
     const nearCamp = Math.hypot(x - campX, z - campZ) < 18;
-    if (nearCamp || !isPlayableLand(x, z, config)) continue;
+    if (nearCamp || isOnPath(x, z) || !isPlayableLand(x, z, config)) continue;
     const scale = config.vegetation.treeScaleBase + (attempt % 4) * config.vegetation.treeScaleVar;
     scene.add(makeTree(x, z, scale));
     treeColliders.push({ x, z, radius: 1.6 * scale });
@@ -233,7 +251,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     bushAttempt += 1;
     const x = seeded(bushAttempt, config.vegetation.bushSeed) * config.ground.width - config.ground.width / 2;
     const z = seeded(bushAttempt, config.vegetation.bushSeed + 100) * config.ground.depth - config.ground.depth / 2;
-    if (!isPlayableLand(x, z, config)) continue;
+    if (isOnPath(x, z) || !isPlayableLand(x, z, config)) continue;
     const nearAnimal = config.animals.some((animal) =>
       animal.positions.some(([ax, az]) => Math.hypot(x - ax, z - az) < 4),
     );
