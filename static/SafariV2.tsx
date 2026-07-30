@@ -148,10 +148,11 @@ export function SafariV2() {
       previous = now;
       const keys = keysRef.current;
       const touch = touchRef.current;
-      const forward = keys.has("w") || touch.forward;
-      const back = keys.has("s") || touch.back;
-      const left = keys.has("a") || touch.left;
-      const right = keys.has("d") || touch.right;
+      const shift = keys.has("shift");
+      const forward = keys.has("w") || (!shift && keys.has("arrowup")) || touch.forward;
+      const back = keys.has("s") || (!shift && keys.has("arrowdown")) || touch.back;
+      const left = keys.has("a") || (!shift && keys.has("arrowleft")) || touch.left;
+      const right = keys.has("d") || (!shift && keys.has("arrowright")) || touch.right;
 
       if (forward) player.speed += 17 * delta;
       if (back) player.speed -= 12 * delta;
@@ -179,15 +180,22 @@ export function SafariV2() {
 
       const cameraYawSpeed = 1.1;
       const cameraPitchSpeed = 0.9;
-      const cameraLeft = keys.has("arrowleft");
-      const cameraRight = keys.has("arrowright");
-      const cameraUp = keys.has("arrowup");
-      const cameraDown = keys.has("arrowdown");
+      const cameraLeft = shift && keys.has("arrowleft");
+      const cameraRight = shift && keys.has("arrowright");
+      const cameraUp = shift && keys.has("arrowup");
+      const cameraDown = shift && keys.has("arrowdown");
       if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
       if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
       if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
       if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
       player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.45, 0.35);
+
+      if (!cameraLeft && !cameraRight) {
+        let yawDiff = player.yaw - player.cameraYaw;
+        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+        player.cameraYaw += yawDiff * 4 * delta;
+      }
 
       const bob = Math.sin(now * 0.009) * Math.min(0.05, Math.abs(player.speed) * 0.004);
       camera.position.set(player.x, 3.35 + bob, player.z);
@@ -362,11 +370,11 @@ export function SafariV2() {
               <div>
                 <h3>Ordinador</h3>
                 <p>
-                  <kbd>WASD</kbd>
+                  <kbd>WASD</kbd> o <kbd>Fletxes</kbd>
                   <span>Conduir</span>
                 </p>
                 <p>
-                  <kbd>Fletxes</kbd>
+                  <kbd>Shift + Fletxes</kbd>
                   <span>Moure la càmera</span>
                 </p>
                 <p>
