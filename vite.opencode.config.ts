@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
-  base: "/safari/opencode/",
+  base: process.env.DEPLOY_PATH || "/safari/opencode/",
   plugins: [react()],
   build: {
     outDir: "dist-opencode",
