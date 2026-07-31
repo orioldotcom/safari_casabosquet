@@ -50,21 +50,29 @@ export const serengeti: ParkConfig = {
   },
   paths: [
     // Eix est-oest principal (creua el parc d’est a oest)
-    { x: 0, z: 0, width: 8, length: 260, rotation: Math.PI / 2 },
+    { x: 0, z: 0, width: 9, length: 270, rotation: Math.PI / 2 },
     // Eix nord-sud principal (creua el parc de nord a sud)
-    { x: 0, z: 0, width: 8, length: 220, rotation: 0 },
+    { x: 0, z: 0, width: 9, length: 230, rotation: 0 },
     // Connexió des del camp base a l’eix est-oest
-    { x: -106.25, z: 22.5, width: 7, length: 45, rotation: 0 },
-    // Branca nord-est
-    { x: 50, z: 60, width: 6, length: 120, rotation: Math.PI / 2 },
-    // Branca sud-oest
-    { x: -70, z: -50, width: 6, length: 90, rotation: 0 },
+    { x: -106.25, z: 22.5, width: 8, length: 45, rotation: 0 },
+    // Branca nord-est (connecta amb l’eix nord-sud a z=60)
+    { x: 50, z: 60, width: 7, length: 130, rotation: Math.PI / 2 },
+    // Branca sud-oest (connectada amb l’eix est-oest a z=0)
+    { x: -70, z: -40, width: 7, length: 80, rotation: 0 },
+    // Branca sud-est (connectada amb l’eix est-oest a z=0)
+    { x: 75, z: -35, width: 7, length: 70, rotation: 0 },
+    // Branca nord-oest (connectada amb l’eix est-oest a z=0)
+    { x: -40, z: 80, width: 7, length: 70, rotation: 0 },
+    // Accés secundari a l’est del parc
+    { x: 100, z: 0, width: 7, length: 90, rotation: 0 },
   ],
   bridges: [
     // Pont sobre el riu al camí est-oest
-    { x: 35, z: 0, width: 10, length: 24, rotation: Math.PI / 2 },
+    { x: 35, z: 0, width: 11, length: 26, rotation: Math.PI / 2 },
     // Pont sobre el riu al camí nord-sud
-    { x: 0, z: 25, width: 10, length: 24, rotation: 0 },
+    { x: 0, z: 25, width: 11, length: 26, rotation: 0 },
+    // Pont sobre el riu a la branca nord-est
+    { x: 60, z: 60, width: 11, length: 26, rotation: Math.PI / 2 },
   ],
   playerStart: {
     x: -106.25,

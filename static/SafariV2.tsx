@@ -204,7 +204,7 @@ export function SafariV2() {
       const turnFactor = player.speed === 0 ? 1 : Math.sign(player.speed);
       player.yaw += steering * 1.22 * delta * turnFactor;
 
-      const targetWheelAngle = steering * 0.55;
+      const targetWheelAngle = steering * 0.95;
       wheelAngleRef.current += (targetWheelAngle - wheelAngleRef.current) * 8 * delta;
       if (wheelRef.current) {
         wheelRef.current.style.transform = `rotate(${wheelAngleRef.current}rad)`;
