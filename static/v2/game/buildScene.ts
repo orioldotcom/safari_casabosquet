@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { AnimalSpecies, ParkConfig } from "../types";
+import type { AnimalConfig, AnimalSpecies, ParkConfig } from "../types";
 import { isPlayableLand, isSolidGround } from "./terrain";
 
 function seeded(index: number, salt: number) {
@@ -137,7 +137,10 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   scene.background = new THREE.Color(config.skyColor);
   scene.fog = new THREE.Fog(config.fogColor, config.fogNear, config.fogFar);
 
-  const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 430);
+  const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 1400);
+  if (!config.playerStart || typeof config.playerStart.x !== "number") {
+    throw new Error("Invalid playerStart config: " + JSON.stringify(config.playerStart));
+  }
   const player = {
     x: config.playerStart.x,
     z: config.playerStart.z,
@@ -183,6 +186,10 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
 
   if (config.paths) {
     for (const path of config.paths) {
+      if (typeof path.x !== "number" || typeof path.z !== "number") {
+        console.warn("Invalid path config:", path);
+        continue;
+      }
       scene.add(makeDirtPath(path.x, path.z, path.width, path.length, path.rotation));
     }
   }
@@ -190,6 +197,10 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   const bridgeColliders: { x: number; z: number; width: number; length: number; rotation: number }[] = [];
   if (config.bridges) {
     for (const bridge of config.bridges) {
+      if (typeof bridge.x !== "number" || typeof bridge.z !== "number") {
+        console.warn("Invalid bridge config:", bridge);
+        continue;
+      }
       scene.add(makeBridge(bridge.x, bridge.z, bridge.width, bridge.length, bridge.rotation));
       bridgeColliders.push(bridge);
     }
@@ -234,11 +245,11 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   const treeColliders: { x: number; z: number; radius: number }[] = [];
   let placedTrees = 0;
   let attempt = 0;
-  while (placedTrees < config.vegetation.treeCount && attempt < config.vegetation.treeCount * 20) {
+  while (placedTrees < config.vegetation.treeCount && attempt < config.vegetation.treeCount * 40) {
     attempt += 1;
     const x = seeded(attempt, config.vegetation.treeSeed) * config.ground.width - config.ground.width / 2;
     const z = seeded(attempt, config.vegetation.treeSeed + 100) * config.ground.depth - config.ground.depth / 2;
-    const nearCamp = Math.hypot(x - campX, z - campZ) < 18;
+    const nearCamp = Math.hypot(x - campX, z - campZ) < 54;
     if (nearCamp || isOnPath(x, z) || !isPlayableLand(x, z, config)) continue;
     const scale = config.vegetation.treeScaleBase + (attempt % 4) * config.vegetation.treeScaleVar;
     scene.add(makeTree(x, z, scale));
@@ -248,13 +259,13 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
 
   let placedBushes = 0;
   let bushAttempt = 0;
-  while (placedBushes < config.vegetation.bushCount && bushAttempt < config.vegetation.bushCount * 30) {
+  while (placedBushes < config.vegetation.bushCount && bushAttempt < config.vegetation.bushCount * 50) {
     bushAttempt += 1;
     const x = seeded(bushAttempt, config.vegetation.bushSeed) * config.ground.width - config.ground.width / 2;
     const z = seeded(bushAttempt, config.vegetation.bushSeed + 100) * config.ground.depth - config.ground.depth / 2;
     if (isOnPath(x, z) || !isPlayableLand(x, z, config)) continue;
     const nearAnimal = config.animals.some((animal) =>
-      animal.positions.some(([ax, az]) => Math.hypot(x - ax, z - az) < 4),
+      animal.positions.some(([ax, az]) => Math.hypot(x - ax, z - az) < 12),
     );
     if (nearAnimal) continue;
     const scale = config.vegetation.bushScaleBase + (bushAttempt % 4) * config.vegetation.bushScaleVar;

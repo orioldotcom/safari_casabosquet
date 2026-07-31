@@ -4,123 +4,120 @@ export const serengeti: ParkConfig = {
   id: "serengeti",
   name: "Serengeti",
   country: "Tanzània",
-  description: "Sabana oberta, riu estacional i grans depredadors.",
+  description: "Sabana oberta immensa, riu estacional i grans depredadors.",
   briefingTitle: "A la recerca del guepard",
   briefingDescription:
-    "Condueix lliurement des del seient del 4x4. El riu i els límits rocosos marquen la zona explorable. Troba un guepard, centra'l al visor i fotografia'l.",
+    "Condueix lliurement pel parc ampliat. El riu i els límits rocosos marquen la zona explorable. Troba un guepard, centra'l al visor i fotografia'l.",
   available: true,
   skyColor: 0x9ac3d0,
   fogColor: 0x9ac3d0,
-  fogNear: 72,
-  fogFar: 245,
+  fogNear: 150,
+  fogFar: 800,
   ground: {
-    width: 300,
-    depth: 240,
+    width: 900,
+    depth: 720,
     color: 0xbda05a,
     texture: "serengeti-map.png",
   },
   bounds: {
-    halfWidth: 150,
-    halfDepth: 120,
+    halfWidth: 450,
+    halfDepth: 360,
   },
   sun: {
     color: 0xffefc4,
     intensity: 3.2,
-    position: [-60, 95, 45],
-    shadowSize: 160,
+    position: [-180, 140, 135],
+    shadowSize: 480,
   },
   vegetation: {
-    treeCount: 110,
+    treeCount: 600,
     treeSeed: 1,
     treeScaleBase: 0.55,
     treeScaleVar: 0.1,
-    bushCount: 180,
+    bushCount: 1000,
     bushSeed: 7,
     bushScaleBase: 0.65,
     bushScaleVar: 0.15,
     patchCount: 0,
   },
   rocks: {
-    count: 0,
-    borderInset: 0,
+    count: 60,
+    borderInset: 42,
   },
   camp: {
-    position: [-106.25, 3, 45.625],
+    position: [-318.75, 3, 136.875],
     rotation: Math.PI / 4,
   },
   paths: [
-    // Eix est-oest principal (creua el parc d’est a oest)
-    { x: 0, z: 0, width: 9, length: 270, rotation: Math.PI / 2 },
-    // Eix nord-sud principal (creua el parc de nord a sud)
-    { x: 0, z: 0, width: 9, length: 230, rotation: 0 },
+    // Eix est-oest principal
+    { x: 0, z: 0, width: 27, length: 810, rotation: Math.PI / 2 },
+    // Eix nord-sud principal
+    { x: 0, z: 0, width: 27, length: 690, rotation: 0 },
     // Connexió des del camp base a l’eix est-oest
-    { x: -106.25, z: 22.5, width: 8, length: 45, rotation: 0 },
-    // Branca nord-est (connecta amb l’eix nord-sud a z=60)
-    { x: 50, z: 60, width: 7, length: 130, rotation: Math.PI / 2 },
-    // Branca sud-oest (connectada amb l’eix est-oest a z=0)
-    { x: -70, z: -40, width: 7, length: 80, rotation: 0 },
-    // Branca sud-est (connectada amb l’eix est-oest a z=0)
-    { x: 75, z: -35, width: 7, length: 70, rotation: 0 },
-    // Branca nord-oest (connectada amb l’eix est-oest a z=0)
-    { x: -40, z: 80, width: 7, length: 70, rotation: 0 },
-    // Accés secundari a l’est del parc
-    { x: 100, z: 0, width: 7, length: 90, rotation: 0 },
-    // Anell nord (connecta els eixos principals)
-    { x: 0, z: 90, width: 7, length: 190, rotation: Math.PI / 2 },
-    // Anell sud (connecta els eixos principals)
-    { x: 0, z: -90, width: 7, length: 190, rotation: Math.PI / 2 },
+    { x: -318.75, z: 67.5, width: 24, length: 135, rotation: 0 },
+    // Branca nord-est
+    { x: 150, z: 180, width: 21, length: 390, rotation: Math.PI / 2 },
+    // Branca sud-oest
+    { x: -210, z: -120, width: 21, length: 240, rotation: 0 },
+    // Branca sud-est
+    { x: 225, z: -105, width: 21, length: 210, rotation: 0 },
+    // Branca nord-oest
+    { x: -120, z: 240, width: 21, length: 210, rotation: 0 },
+    // Accés secundari a l’est
+    { x: 300, z: 0, width: 21, length: 270, rotation: 0 },
+    // Anell nord
+    { x: 0, z: 270, width: 21, length: 570, rotation: Math.PI / 2 },
+    // Anell sud
+    { x: 0, z: -270, width: 21, length: 570, rotation: Math.PI / 2 },
     // Anell oest
-    { x: -90, z: 0, width: 7, length: 180, rotation: 0 },
+    { x: -270, z: 0, width: 21, length: 540, rotation: 0 },
     // Anell est
-    { x: 90, z: 0, width: 7, length: 180, rotation: 0 },
+    { x: 270, z: 0, width: 21, length: 540, rotation: 0 },
     // Diagonal nord-oest a sud-est
-    { x: 0, z: 0, width: 6, length: 220, rotation: Math.PI / 4 },
+    { x: 0, z: 0, width: 18, length: 660, rotation: Math.PI / 4 },
     // Diagonal sud-oest a nord-est
-    { x: 0, z: 0, width: 6, length: 220, rotation: -Math.PI / 4 },
+    { x: 0, z: 0, width: 18, length: 660, rotation: -Math.PI / 4 },
     // Branca interna nord-est
-    { x: 45, z: 45, width: 6, length: 90, rotation: Math.PI / 2 },
+    { x: 135, z: 135, width: 18, length: 270, rotation: Math.PI / 2 },
     // Branca interna sud-oest
-    { x: -45, z: -45, width: 6, length: 90, rotation: Math.PI / 2 },
+    { x: -135, z: -135, width: 18, length: 270, rotation: Math.PI / 2 },
   ],
   bridges: [
-    // Pont sobre el riu al camí est-oest
-    { x: 35, z: 0, width: 11, length: 26, rotation: Math.PI / 2 },
-    // Pont sobre el riu al camí nord-sud
-    { x: 0, z: 25, width: 11, length: 26, rotation: 0 },
-    // Pont sobre el riu a la branca nord-est
-    { x: 60, z: 60, width: 11, length: 26, rotation: Math.PI / 2 },
-    // Pont sobre el riu a l’anell est
-    { x: 90, z: 30, width: 11, length: 26, rotation: 0 },
+    { x: 105, z: 0, width: 33, length: 78, rotation: Math.PI / 2 },
+    { x: 0, z: 75, width: 33, length: 78, rotation: 0 },
+    { x: 180, z: 180, width: 33, length: 78, rotation: Math.PI / 2 },
+    { x: 270, z: 90, width: 33, length: 78, rotation: 0 },
   ],
-  rocks: {
-    count: 28,
-    borderInset: 14,
-  },
   terrain: {
     landPolygon: [
-      [-141.25, -21.25],
-      [-138.75, -65],
-      [-91.25, -96.875],
-      [-22.5, -93.125],
-      [47.5, -82.5],
-      [121.25, -66.875],
-      [141.875, -33.75],
-      [131.25, 37.5],
-      [67.5, 85],
-      [3.75, 92.5],
-      [-85, 76.25],
-      [-130.625, 45],
+      [-423.75, -63.75],
+      [-416.25, -195],
+      [-273.75, -290.625],
+      [-67.5, -279.375],
+      [142.5, -247.5],
+      [363.75, -200.625],
+      [425.625, -101.25],
+      [393.75, 112.5],
+      [202.5, 255],
+      [11.25, 277.5],
+      [-255, 228.75],
+      [-391.875, 135],
     ],
     riverPolygon: [
-      [79.375, -71.25],
-      [91.25, -41.875],
-      [85, -10],
-      [64.375, 25],
-      [37.5, 61.25],
-      [10, 86.875],
+      [238.125, -213.75],
+      [273.75, -125.625],
+      [255, -30],
+      [193.125, 75],
+      [112.5, 183.75],
+      [30, 260.625],
     ],
-    mountain: { x: -96.25, z: -67.5, rx: 43.125, rz: 31.875 },
-    pond: { x: -65, z: -13.75, rx: 23.75, rz: 13.125 },
+    mountain: { x: -288.75, z: -202.5, rx: 129.375, rz: 95.625 },
+    pond: { x: -195, z: -41.25, rx: 71.25, rz: 39.375 },
+  },
+  playerStart: {
+    x: -318.75,
+    z: 136.875,
+    yaw: 0,
   },
   animals: [
     {
@@ -130,9 +127,9 @@ export const serengeti: ParkConfig = {
       height: 1.92,
       scale: 1,
       positions: [
-        [-68.125, 25],
-        [-18.75, 2.5],
-        [-47.5, 40],
+        [-204.375, 75],
+        [-56.25, 7.5],
+        [-142.5, 120],
       ],
       speed: 1.6,
       fleeSpeed: 7,

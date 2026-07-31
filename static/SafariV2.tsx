@@ -13,6 +13,8 @@ export function SafariV2() {
   const [message, setMessage] = useState("Tria un parc i comença l'expedició.");
   const [photoDone, setPhotoDone] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const [cameraMode, setCameraMode] = useState<"follow" | "free">("follow");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keysRef = useRef(new Set<string>());
   const touchRef = useRef<Record<DriveControl, boolean>>({
@@ -28,6 +30,10 @@ export function SafariV2() {
   const wheelRef = useRef<HTMLDivElement>(null);
   const gpsRef = useRef<HTMLDivElement>(null);
   const wheelAngleRef = useRef(0);
+  const cameraModeRef = useRef<"follow" | "free">("follow");
+  const freeCameraRef = useRef({ x: 0, y: 20, z: 0, yaw: 0, pitch: -0.3 });
+  const kmRef = useRef(0);
+  const kmDisplayRef = useRef<HTMLDivElement>(null);
 
   const currentPark = getParkConfig(selectedParkId);
 
@@ -55,11 +61,28 @@ export function SafariV2() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    let sceneData;
+    try {
+      sceneData = buildScene(canvas, currentPark);
+    } catch (error) {
+      setRenderError(error instanceof Error ? error.message : String(error));
+      return;
+    }
+    setRenderError(null);
     const { renderer, scene, camera, player, photoTargets, animals, isBlocked, isBlockedForAnimals, cleanup } =
-      buildScene(canvas, currentPark);
+      sceneData;
 
     playerRef.current = player;
     animalsRef.current = animals;
+    freeCameraRef.current = {
+      x: player.x,
+      y: 35,
+      z: player.z,
+      yaw: player.yaw,
+      pitch: -0.35,
+    };
+    kmRef.current = 0;
+    if (kmDisplayRef.current) kmDisplayRef.current.textContent = "0.00 km";
 
     const isOnPath = (x: number, z: number) => {
       if (!currentPark.paths) return false;
@@ -134,13 +157,44 @@ export function SafariV2() {
         player.cameraYaw = currentPark.playerStart.yaw;
         player.cameraPitch = 0;
         player.speed = 0;
+        if (cameraModeRef.current === "free") {
+          freeCameraRef.current.x = player.x;
+          freeCameraRef.current.z = player.z;
+          freeCameraRef.current.yaw = player.yaw;
+        }
         setMessage("Vehicle recol·locat al camp base.");
+      }
+      if (key === "c") {
+        const next = cameraModeRef.current === "follow" ? "free" : "follow";
+        cameraModeRef.current = next;
+        setCameraMode(next);
+        if (next === "free") {
+          freeCameraRef.current = {
+            x: player.x - Math.sin(player.yaw) * 25,
+            y: 35,
+            z: player.z + Math.cos(player.yaw) * 25,
+            yaw: player.yaw,
+            pitch: -0.35,
+          };
+          setMessage("Càmera lliure activada. WASD o fletxes per moure't, Shift per pujar/baixar, rodeta per zoom.");
+        } else {
+          player.cameraYaw = player.yaw;
+          player.cameraPitch = 0;
+          setMessage("Càmera següent el vehicle.");
+        }
       }
       if (key === "escape") setScreen("parks");
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.key.toLowerCase());
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY * 0.05;
+      camera.fov = Math.max(15, Math.min(90, camera.fov + delta));
+      camera.updateProjectionMatrix();
+    };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("wheel", onWheel, { passive: false });
 
     const pinchRef = { startDistance: 0, startFov: camera.fov, active: false };
     const getPinchDistance = (touches: TouchList) => {
@@ -189,16 +243,17 @@ export function SafariV2() {
       previous = now;
       const keys = keysRef.current;
       const touch = touchRef.current;
+      const freeMode = cameraModeRef.current === "free";
       const shift = keys.has("shift");
-      const forward = keys.has("w") || (!shift && keys.has("arrowup")) || touch.forward;
-      const back = keys.has("s") || (!shift && keys.has("arrowdown")) || touch.back;
-      const left = keys.has("a") || (!shift && keys.has("arrowleft")) || touch.left;
-      const right = keys.has("d") || (!shift && keys.has("arrowright")) || touch.right;
+      const forward = !freeMode && (keys.has("w") || touch.forward);
+      const back = !freeMode && (keys.has("s") || touch.back);
+      const left = !freeMode && (keys.has("a") || touch.left);
+      const right = !freeMode && (keys.has("d") || touch.right);
 
-      if (forward) player.speed += 17 * delta;
-      if (back) player.speed -= 12 * delta;
+      if (forward) player.speed += 28 * delta;
+      if (back) player.speed -= 18 * delta;
       player.speed *= Math.pow(0.22, delta);
-      player.speed = THREE.MathUtils.clamp(player.speed, -5.5, 17);
+      player.speed = THREE.MathUtils.clamp(player.speed, -9, 30);
 
       const steering = (right ? 1 : 0) - (left ? 1 : 0);
       const turnFactor = player.speed === 0 ? 1 : Math.sign(player.speed);
@@ -226,6 +281,11 @@ export function SafariV2() {
         }
       }
 
+      kmRef.current += Math.abs(player.speed) * delta / 1000;
+      if (kmDisplayRef.current) {
+        kmDisplayRef.current.textContent = `${kmRef.current.toFixed(2)} km`;
+      }
+
       if (Math.abs(player.speed) > 1 && isOnPath(player.x, player.z)) {
         if (now - lastSkidAt > 180) {
           lastSkidAt = now;
@@ -238,32 +298,67 @@ export function SafariV2() {
         }
       }
 
-      const cameraYawSpeed = 1.1;
-      const cameraPitchSpeed = 0.9;
-      const cameraLeft = shift && keys.has("arrowleft");
-      const cameraRight = shift && keys.has("arrowright");
-      const cameraUp = shift && keys.has("arrowup");
-      const cameraDown = shift && keys.has("arrowdown");
-      if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
-      if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
-      if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
-      if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
-      player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.45, 0.35);
-
-      if (!cameraLeft && !cameraRight) {
-        let yawDiff = player.yaw - player.cameraYaw;
-        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
-        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
-        player.cameraYaw += yawDiff * 4 * delta;
-      }
-
       const bob = Math.sin(now * 0.009) * Math.min(0.05, Math.abs(player.speed) * 0.004);
-      camera.position.set(player.x, 3.35 + bob, player.z);
-      const lookDistance = 10;
-      const lookX = player.x + Math.sin(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
-      const lookY = 3.22 + bob + Math.sin(player.cameraPitch) * lookDistance;
-      const lookZ = player.z - Math.cos(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
-      camera.lookAt(lookX, lookY, lookZ);
+      if (freeMode) {
+        const moveSpeed = 120 * delta;
+        const turnSpeed = 1.8 * delta;
+        const up = keys.has("arrowup") || keys.has("w");
+        const down = keys.has("arrowdown") || keys.has("s");
+        const camLeft = keys.has("arrowleft") || keys.has("a");
+        const camRight = keys.has("arrowright") || keys.has("d");
+        if (up) {
+          freeCameraRef.current.x += Math.sin(freeCameraRef.current.yaw) * moveSpeed;
+          freeCameraRef.current.z -= Math.cos(freeCameraRef.current.yaw) * moveSpeed;
+        }
+        if (down) {
+          freeCameraRef.current.x -= Math.sin(freeCameraRef.current.yaw) * moveSpeed;
+          freeCameraRef.current.z += Math.cos(freeCameraRef.current.yaw) * moveSpeed;
+        }
+        if (camLeft) freeCameraRef.current.yaw -= turnSpeed;
+        if (camRight) freeCameraRef.current.yaw += turnSpeed;
+        if (shift && up) freeCameraRef.current.y += 60 * delta;
+        if (shift && down) freeCameraRef.current.y -= 60 * delta;
+        freeCameraRef.current.y = THREE.MathUtils.clamp(freeCameraRef.current.y, 3, 900);
+
+        camera.position.set(freeCameraRef.current.x, freeCameraRef.current.y, freeCameraRef.current.z);
+        const lookDistance = 10;
+        const lookX =
+          freeCameraRef.current.x +
+          Math.sin(freeCameraRef.current.yaw) * Math.cos(freeCameraRef.current.pitch) * lookDistance;
+        const lookY = freeCameraRef.current.y + Math.sin(freeCameraRef.current.pitch) * lookDistance;
+        const lookZ =
+          freeCameraRef.current.z -
+          Math.cos(freeCameraRef.current.yaw) * Math.cos(freeCameraRef.current.pitch) * lookDistance;
+        camera.lookAt(lookX, lookY, lookZ);
+      } else {
+        const cameraYawSpeed = 2.0;
+        const cameraPitchSpeed = 1.4;
+        const cameraLeft = keys.has("arrowleft");
+        const cameraRight = keys.has("arrowright");
+        const cameraUp = keys.has("arrowup");
+        const cameraDown = keys.has("arrowdown");
+        if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
+        if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
+        if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
+        if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
+        player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.75, 0.55);
+
+        if (!cameraLeft && !cameraRight) {
+          let yawDiff = player.yaw - player.cameraYaw;
+          while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+          while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+          player.cameraYaw += yawDiff * 4 * delta;
+        }
+
+        camera.position.set(player.x, 3.35 + bob, player.z);
+        const lookDistance = 10;
+        const lookX =
+          player.x + Math.sin(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
+        const lookY = 3.22 + bob + Math.sin(player.cameraPitch) * lookDistance;
+        const lookZ =
+          player.z - Math.cos(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
+        camera.lookAt(lookX, lookY, lookZ);
+      }
 
       const FLEE_DISTANCE = 38;
       const FLEE_ACCEL = 14;
@@ -366,6 +461,7 @@ export function SafariV2() {
       observer.disconnect();
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
@@ -461,8 +557,20 @@ export function SafariV2() {
                   <span>Conduir</span>
                 </p>
                 <p>
-                  <kbd>Shift + Fletxes</kbd>
-                  <span>Moure la càmera</span>
+                  <kbd>WASD</kbd>
+                  <span>Conduir</span>
+                </p>
+                <p>
+                  <kbd>Fletxes</kbd>
+                  <span>Mirar a l'esquerra / dreta / endavant</span>
+                </p>
+                <p>
+                  <kbd>C</kbd>
+                  <span>Mode càmera lliure (sense cotxe) / següent</span>
+                </p>
+                <p>
+                  <kbd>Rodeta</kbd>
+                  <span>Zoom</span>
                 </p>
                 <p>
                   <kbd>Espai</kbd>
@@ -508,6 +616,12 @@ export function SafariV2() {
 
   return (
     <main className="v2-game">
+      {renderError && (
+        <div className="v2-error" role="alert">
+          <strong>Error al carregar l’escena:</strong>
+          <pre>{renderError}</pre>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         className="v2-canvas"
@@ -520,11 +634,15 @@ export function SafariV2() {
           <span>PARC</span>
           <strong>{currentPark?.name ?? ""}</strong>
         </div>
-        <div>
+        <div className="hud-right">
           <span>MISSIÓ</span>
           <strong className={photoDone ? "mission-done" : ""}>
             {photoDone ? "1/1" : "0/1"} {mission?.label ?? ""}
           </strong>
+        </div>
+        <div className={`camera-mode-badge hud-right ${cameraMode === "free" ? "camera-mode-free" : "camera-mode-follow"}`}>
+          <span>CÀMERA</span>
+          <strong>{cameraMode === "free" ? "Lliure" : "Següent"}</strong>
         </div>
       </header>
       <div className="viewfinder" aria-hidden="true">
@@ -535,17 +653,25 @@ export function SafariV2() {
         <b>+</b>
       </div>
       <div className={`photo-flash ${flash ? "visible" : ""}`} />
-      <div className="jeep-cockpit" aria-hidden="true">
-        <span />
-        <b />
-      </div>
-      <div className="steering-wheel" ref={wheelRef} aria-hidden="true">
-        <span />
-      </div>
-      <div className="gps" aria-hidden="true">
-        <span>GPS</span>
-        <b ref={gpsRef}>↑</b>
-      </div>
+      {cameraMode !== "free" && (
+        <>
+          <div className="jeep-cockpit" aria-hidden="true">
+            <span />
+            <b />
+            <div className="dashboard-km">
+              <span>KM</span>
+              <strong ref={kmDisplayRef}>0.00</strong>
+            </div>
+          </div>
+          <div className="steering-wheel" ref={wheelRef} aria-hidden="true">
+            <span />
+          </div>
+          <div className="gps" aria-hidden="true">
+            <span>GPS</span>
+            <b ref={gpsRef}>↑</b>
+          </div>
+        </>
+      )}
       <div className="v2-message" role="status">
         {message}
       </div>
