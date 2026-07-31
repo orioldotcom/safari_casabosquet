@@ -337,20 +337,13 @@ export function SafariV2() {
         const cameraRight = keys.has("arrowright");
         const cameraUp = keys.has("arrowup");
         const cameraDown = keys.has("arrowdown");
-        if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
-        if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
-        if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
-        if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
-        player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.75, 0.55);
+      if (cameraLeft) player.cameraYaw -= cameraYawSpeed * delta;
+      if (cameraRight) player.cameraYaw += cameraYawSpeed * delta;
+      if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
+      if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
+      player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.75, 0.55);
 
-        if (!cameraLeft && !cameraRight) {
-          let yawDiff = player.yaw - player.cameraYaw;
-          while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
-          while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
-          player.cameraYaw += yawDiff * 4 * delta;
-        }
-
-        camera.position.set(player.x, 3.35 + bob, player.z);
+      camera.position.set(player.x, 3.35 + bob, player.z);
         const lookDistance = 10;
         const lookX =
           player.x + Math.sin(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
@@ -562,7 +555,7 @@ export function SafariV2() {
                 </p>
                 <p>
                   <kbd>Fletxes</kbd>
-                  <span>Mirar a l'esquerra / dreta / endavant</span>
+                  <span>Mirar a l'esquerra / dreta / amunt / avall</span>
                 </p>
                 <p>
                   <kbd>C</kbd>
