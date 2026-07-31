@@ -55,7 +55,7 @@ export function SafariV2() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const { renderer, scene, camera, player, photoTargets, animals, isBlocked, cleanup } =
+    const { renderer, scene, camera, player, photoTargets, animals, isBlocked, isBlockedForAnimals, cleanup } =
       buildScene(canvas, currentPark);
 
     playerRef.current = player;
@@ -313,7 +313,7 @@ export function SafariV2() {
         const nextX = animal.x + moveX;
         const nextZ = animal.z + moveZ;
 
-        if (!isBlocked(nextX, nextZ)) {
+        if (!isBlockedForAnimals(nextX, nextZ)) {
           animal.x = nextX;
           animal.z = nextZ;
           animal.mesh.position.set(animal.x, animal.config.height / 2, animal.z);

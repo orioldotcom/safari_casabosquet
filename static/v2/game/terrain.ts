@@ -56,6 +56,13 @@ export function isPlayableLand(x: number, z: number, config: ParkConfig) {
   return true;
 }
 
+export function isSolidGround(x: number, z: number, config: ParkConfig) {
+  const { terrain } = config;
+  if (!pointInPolygon(x, z, terrain.landPolygon)) return false;
+  if (terrain.mountain && insideEllipse(x, z, terrain.mountain)) return false;
+  return true;
+}
+
 export function randomPlayablePosition(
   config: ParkConfig,
   seed: number,

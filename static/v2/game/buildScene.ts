@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { AnimalSpecies, ParkConfig } from "../types";
-import { isPlayableLand } from "./terrain";
+import { isPlayableLand, isSolidGround } from "./terrain";
 
 function seeded(index: number, salt: number) {
   const value = Math.sin(index * 9283.17 + salt * 137.31) * 43758.5453;
@@ -122,6 +122,7 @@ export type BuiltScene = {
   photoTargets: THREE.Mesh[];
   animals: AnimalInstance[];
   isBlocked: (x: number, z: number) => boolean;
+  isBlockedForAnimals: (x: number, z: number) => boolean;
   cleanup: () => void;
 };
 
@@ -362,6 +363,17 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
       Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
     if (!insideBounds) return true;
     if (bridgeColliders.some((bridge) => isOnBridge(x, z, bridge))) return false;
+    if (!isSolidGround(x, z, config)) return true;
+    for (const tree of treeColliders) {
+      if (Math.hypot(x - tree.x, z - tree.z) < tree.radius) return true;
+    }
+    return false;
+  };
+
+  const isBlockedForAnimals = (x: number, z: number) => {
+    const insideBounds =
+      Math.abs(x) < config.bounds.halfWidth && Math.abs(z) < config.bounds.halfDepth;
+    if (!insideBounds) return true;
     if (!isPlayableLand(x, z, config)) return true;
     for (const tree of treeColliders) {
       if (Math.hypot(x - tree.x, z - tree.z) < tree.radius) return true;
@@ -381,5 +393,5 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     });
   };
 
-  return { renderer, scene, camera, player, photoTargets, animals, isBlocked, cleanup };
+  return { renderer, scene, camera, player, photoTargets, animals, isBlocked, isBlockedForAnimals, cleanup };
 }
