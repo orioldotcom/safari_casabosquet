@@ -71,7 +71,7 @@ button { cursor: pointer; }
 .park-serengeti .park-card-art {
   background-image:
     linear-gradient(to top, rgba(24, 45, 28, .3), transparent 55%),
-    url("/safari/serengeti-map.png");
+    url("../serengeti-map.png");
 }
 .park-kruger .park-card-art {
   background:
@@ -129,7 +129,7 @@ button { cursor: pointer; }
   padding: 28px;
   background:
     linear-gradient(90deg, rgba(11, 28, 18, .94), rgba(11, 28, 18, .45)),
-    url("/safari/serengeti-map.png") center / cover;
+    url("../serengeti-map.png") center / cover;
 }
 .briefing-panel {
   width: min(760px, 100%);
