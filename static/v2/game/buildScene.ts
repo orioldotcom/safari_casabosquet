@@ -213,7 +213,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
       const dz = z - path.z;
       const localX = dx * Math.cos(-path.rotation) - dz * Math.sin(-path.rotation);
       const localZ = dx * Math.sin(-path.rotation) + dz * Math.cos(-path.rotation);
-      const margin = 2;
+      const margin = 9;
       if (
         Math.abs(localX) < path.length / 2 + margin &&
         Math.abs(localZ) < path.width / 2 + margin
