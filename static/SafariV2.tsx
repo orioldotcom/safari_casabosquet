@@ -25,6 +25,9 @@ export function SafariV2() {
   const photoDoneRef = useRef(false);
   const playerRef = useRef({ x: 0, z: 0, yaw: 0, speed: 0 });
   const animalsRef = useRef<AnimalInstance[]>([]);
+  const wheelRef = useRef<HTMLDivElement>(null);
+  const gpsRef = useRef<HTMLDivElement>(null);
+  const wheelAngleRef = useRef(0);
 
   const currentPark = getParkConfig(selectedParkId);
 
@@ -200,6 +203,13 @@ export function SafariV2() {
       const steering = (right ? 1 : 0) - (left ? 1 : 0);
       const turnFactor = player.speed === 0 ? 1 : Math.sign(player.speed);
       player.yaw += steering * 1.22 * delta * turnFactor;
+
+      const targetWheelAngle = steering * 0.55;
+      wheelAngleRef.current += (targetWheelAngle - wheelAngleRef.current) * 8 * delta;
+      if (wheelRef.current) {
+        wheelRef.current.style.transform = `rotate(${wheelAngleRef.current}rad)`;
+      }
+
       const directionX = Math.sin(player.yaw);
       const directionZ = -Math.cos(player.yaw);
       const candidateX = player.x + directionX * player.speed * delta;
@@ -322,6 +332,28 @@ export function SafariV2() {
         } else {
           animal.mesh.lookAt(camera.position.x, animal.config.height / 2, camera.position.z);
         }
+      }
+
+      let targetAngle = 0;
+      const [campX, campY, campZ] = currentPark.camp.position;
+      if (!photoDoneRef.current && animals.length > 0) {
+        let nearest: AnimalInstance | null = null;
+        let nearestDist = Number.POSITIVE_INFINITY;
+        for (const animal of animals) {
+          const dist = Math.hypot(animal.x - player.x, animal.z - player.z);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = animal;
+          }
+        }
+        if (nearest) {
+          targetAngle = Math.atan2(nearest.x - player.x, nearest.z - player.z);
+        }
+      } else {
+        targetAngle = Math.atan2(campX - player.x, campZ - player.z);
+      }
+      if (gpsRef.current) {
+        gpsRef.current.style.transform = `rotate(${targetAngle - player.yaw}rad)`;
       }
 
       renderer.render(scene, camera);
@@ -506,6 +538,13 @@ export function SafariV2() {
       <div className="jeep-cockpit" aria-hidden="true">
         <span />
         <b />
+      </div>
+      <div className="steering-wheel" ref={wheelRef} aria-hidden="true">
+        <span />
+      </div>
+      <div className="gps" aria-hidden="true">
+        <span>GPS</span>
+        <b ref={gpsRef}>↑</b>
       </div>
       <div className="v2-message" role="status">
         {message}

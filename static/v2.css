@@ -354,6 +354,78 @@ button { cursor: pointer; }
   border: 12px solid #282820;
   border-radius: 50%;
 }
+
+.steering-wheel {
+  position: absolute;
+  left: 50%;
+  bottom: 58px;
+  width: 130px;
+  height: 130px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 3;
+}
+.steering-wheel span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 10px solid #2c2b24;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #3a3830 18%, transparent 19%),
+    repeating-conic-gradient(from 0deg, #4a463a 0deg 45deg, #3d3a31 45deg 90deg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+.steering-wheel span::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 10px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: #d8bd7a;
+  border-radius: 3px;
+}
+
+.gps {
+  position: absolute;
+  right: 140px;
+  bottom: 38px;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 3;
+  background: rgba(16, 36, 23, .88);
+  border: 2px solid rgba(255, 255, 255, .22);
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+}
+.gps span {
+  position: absolute;
+  top: 10px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: #cddd86;
+}
+.gps b {
+  font-size: 28px;
+  color: #dceb83;
+  transform-origin: center;
+}
+
+@media (max-width: 560px) {
+  .steering-wheel { width: 96px; height: 96px; bottom: 42px; }
+  .steering-wheel span { border-width: 7px; }
+  .steering-wheel span::after { width: 7px; height: 20px; }
+  .gps { right: 104px; bottom: 26px; width: 58px; height: 58px; }
+  .gps span { top: 7px; font-size: 6px; }
+  .gps b { font-size: 20px; }
+}
+
 .v2-message {
   position: absolute;
   left: 50%;
