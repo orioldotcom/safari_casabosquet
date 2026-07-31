@@ -65,6 +65,22 @@ export const serengeti: ParkConfig = {
     { x: -40, z: 80, width: 7, length: 70, rotation: 0 },
     // Accés secundari a l’est del parc
     { x: 100, z: 0, width: 7, length: 90, rotation: 0 },
+    // Anell nord (connecta els eixos principals)
+    { x: 0, z: 90, width: 7, length: 190, rotation: Math.PI / 2 },
+    // Anell sud (connecta els eixos principals)
+    { x: 0, z: -90, width: 7, length: 190, rotation: Math.PI / 2 },
+    // Anell oest
+    { x: -90, z: 0, width: 7, length: 180, rotation: 0 },
+    // Anell est
+    { x: 90, z: 0, width: 7, length: 180, rotation: 0 },
+    // Diagonal nord-oest a sud-est
+    { x: 0, z: 0, width: 6, length: 220, rotation: Math.PI / 4 },
+    // Diagonal sud-oest a nord-est
+    { x: 0, z: 0, width: 6, length: 220, rotation: -Math.PI / 4 },
+    // Branca interna nord-est
+    { x: 45, z: 45, width: 6, length: 90, rotation: Math.PI / 2 },
+    // Branca interna sud-oest
+    { x: -45, z: -45, width: 6, length: 90, rotation: Math.PI / 2 },
   ],
   bridges: [
     // Pont sobre el riu al camí est-oest
@@ -73,11 +89,12 @@ export const serengeti: ParkConfig = {
     { x: 0, z: 25, width: 11, length: 26, rotation: 0 },
     // Pont sobre el riu a la branca nord-est
     { x: 60, z: 60, width: 11, length: 26, rotation: Math.PI / 2 },
+    // Pont sobre el riu a l’anell est
+    { x: 90, z: 30, width: 11, length: 26, rotation: 0 },
   ],
-  playerStart: {
-    x: -106.25,
-    z: 45.625,
-    yaw: 0,
+  rocks: {
+    count: 28,
+    borderInset: 14,
   },
   terrain: {
     landPolygon: [
