@@ -164,6 +164,11 @@ export function SafariV2() {
         }
         setMessage("Vehicle recol·locat al camp base.");
       }
+      if (key === "t") {
+        player.cameraYaw = player.yaw;
+        player.cameraPitch = 0;
+        setMessage("Visió recentrada amb la direcció del vehicle.");
+      }
       if (key === "c") {
         const next = cameraModeRef.current === "follow" ? "free" : "follow";
         cameraModeRef.current = next;
@@ -342,6 +347,15 @@ export function SafariV2() {
       if (cameraUp) player.cameraPitch += cameraPitchSpeed * delta;
       if (cameraDown) player.cameraPitch -= cameraPitchSpeed * delta;
       player.cameraPitch = THREE.MathUtils.clamp(player.cameraPitch, -0.75, 0.55);
+
+      // Quan el vehicle es mou, la càmera tendeix a seguir-lo suament,
+      // però l'usuari pot girar la visió amb les fletxes.
+      if (!cameraLeft && !cameraRight && Math.abs(player.speed) > 0.5) {
+        let yawDiff = player.yaw - player.cameraYaw;
+        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+        player.cameraYaw += yawDiff * 2 * delta;
+      }
 
       camera.position.set(player.x, 3.35 + bob, player.z);
         const lookDistance = 10;
@@ -556,6 +570,10 @@ export function SafariV2() {
                 <p>
                   <kbd>Fletxes</kbd>
                   <span>Mirar a l'esquerra / dreta / amunt / avall</span>
+                </p>
+                <p>
+                  <kbd>T</kbd>
+                  <span>Recentrar la visió amb el vehicle</span>
                 </p>
                 <p>
                   <kbd>C</kbd>
