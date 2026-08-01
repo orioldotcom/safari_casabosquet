@@ -29,6 +29,7 @@ export function SafariV2() {
   const playerRef = useRef({ x: 0, z: 0, yaw: 0, speed: 0 });
   const animalsRef = useRef<AnimalInstance[]>([]);
   const wheelRef = useRef<HTMLDivElement>(null);
+  const cockpitRigRef = useRef<HTMLDivElement>(null);
   const gpsRef = useRef<HTMLDivElement>(null);
   const wheelAngleRef = useRef(0);
   const cameraModeRef = useRef<"follow" | "free">("follow");
@@ -268,7 +269,7 @@ export function SafariV2() {
       const targetWheelAngle = steering * 0.95;
       wheelAngleRef.current += (targetWheelAngle - wheelAngleRef.current) * 8 * delta;
       if (wheelRef.current) {
-        wheelRef.current.style.transform = `rotate(${wheelAngleRef.current}rad)`;
+        wheelRef.current.style.transform = `translateX(-50%) rotate(${wheelAngleRef.current}rad)`;
       }
 
       const directionX = Math.sin(player.yaw);
@@ -366,6 +367,29 @@ export function SafariV2() {
         const lookZ =
           player.z - Math.cos(player.cameraYaw) * Math.cos(player.cameraPitch) * lookDistance;
         camera.lookAt(lookX, lookY, lookZ);
+      }
+
+      // El cockpit queda enganxat a la direcció del vehicle (player.yaw).
+      // Si el conductor gira la visió (cameraYaw), el cockpit es desplaça
+      // en sentit contrari, com quan gires el cap dins d'un cotxe real:
+      // el volant se'n va al costat oposat del camp visual.
+      const rig = cockpitRigRef.current;
+      if (rig) {
+        let viewOffset = player.cameraYaw - player.yaw;
+        while (viewOffset > Math.PI) viewOffset -= Math.PI * 2;
+        while (viewOffset < -Math.PI) viewOffset += Math.PI * 2;
+        const shift = -Math.sin(viewOffset) * window.innerWidth * 0.45;
+        const absOffset = Math.abs(viewOffset);
+        const fadeStart = 1.5;
+        const fadeEnd = 2.3;
+        const opacity =
+          absOffset <= fadeStart
+            ? 1
+            : absOffset >= fadeEnd
+              ? 0
+              : 1 - (absOffset - fadeStart) / (fadeEnd - fadeStart);
+        rig.style.transform = `translateX(${shift.toFixed(1)}px)`;
+        rig.style.opacity = opacity.toFixed(3);
       }
 
       const FLEE_DISTANCE = 38;
@@ -667,8 +691,8 @@ export function SafariV2() {
       </div>
       <div className={`photo-flash ${flash ? "visible" : ""}`} />
       {cameraMode !== "free" && (
-        <>
-          <div className="jeep-cockpit" aria-hidden="true">
+        <div className="cockpit-rig" ref={cockpitRigRef} aria-hidden="true">
+          <div className="jeep-cockpit">
             <span />
             <b />
             <div className="dashboard-km">
@@ -676,14 +700,14 @@ export function SafariV2() {
               <strong ref={kmDisplayRef}>0.00</strong>
             </div>
           </div>
-          <div className="steering-wheel" ref={wheelRef} aria-hidden="true">
+          <div className="steering-wheel" ref={wheelRef}>
             <span />
           </div>
-          <div className="gps" aria-hidden="true">
+          <div className="gps">
             <span>GPS</span>
             <b ref={gpsRef}>↑</b>
           </div>
-        </>
+        </div>
       )}
       <div className="v2-message" role="status">
         {message}

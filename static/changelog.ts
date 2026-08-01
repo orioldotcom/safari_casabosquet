@@ -1,7 +1,7 @@
 declare const __APP_COMMIT__: string | undefined;
 
 /** Versió actual de l'aplicació. Actualitza-la quan publiquis millores. */
-export const APP_VERSION = "0.5.0";
+export const APP_VERSION = "0.6.0";
 
 /** Hash curt del commit amb què s'ha generat aquest build ("dev" en local). */
 export const APP_COMMIT: string =
@@ -18,6 +18,16 @@ export type ChangelogEntry = {
 
 /** Historial de millores visible pels usuaris. Les novetats van primer. */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.6.0",
+    date: "2026-08-01",
+    title: "Cockpit fix a la direcció del vehicle",
+    changes: [
+      "El volant, el tauler i el GPS queden orientats amb la direcció del vehicle.",
+      "En girar la visió amb les fletxes, el cap del conductor gira dins de l'habitacle sense que el vehicle sembli girar.",
+      "El cockpit s'atenua quan mires gairebé cap enrere.",
+    ],
+  },
   {
     version: "0.5.0",
     date: "2026-08-01",

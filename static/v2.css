@@ -349,6 +349,12 @@ button { cursor: pointer; }
   transition: opacity .13s ease-out;
 }
 .photo-flash.visible { opacity: .86; transition: none; }
+.cockpit-rig {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
 .jeep-cockpit {
   position: absolute;
   left: 50%;
