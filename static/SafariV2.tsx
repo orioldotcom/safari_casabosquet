@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { getParkConfig, PARKS } from "./v2/parks";
 import { buildScene, type AnimalInstance } from "./v2/game/buildScene";
 import { Minimap } from "./v2/components/Minimap";
+import { VersionFooter } from "./v2/components/VersionFooter";
 
 type Screen = "parks" | "briefing" | "playing";
 type DriveControl = "forward" | "back" | "left" | "right";
@@ -517,6 +518,7 @@ export function SafariV2() {
           ))}
         </section>
         <a className="legacy-link" href="../">Tornar a la versió aèria</a>
+        <VersionFooter />
       </main>
     );
   }

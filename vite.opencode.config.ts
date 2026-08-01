@@ -1,11 +1,23 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 
+function gitCommit() {
+  try {
+    return execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
+
 export default defineConfig({
   base: process.env.DEPLOY_PATH || "/safari/opencode/",
+  define: {
+    __APP_COMMIT__: JSON.stringify(gitCommit()),
+  },
   plugins: [react()],
   build: {
     outDir: "dist-opencode",
