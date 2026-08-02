@@ -28,6 +28,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# python virtualenv
+.venv/
+
 # env files (can opt-in for committing if needed)
 .env
 .env.local
