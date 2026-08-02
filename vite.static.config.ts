@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
-  base: "/safari/",
+  base: "/safari_casabosquet/",
   plugins: [react()],
   build: {
     outDir: "dist-static",
