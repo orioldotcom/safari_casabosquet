@@ -133,7 +133,7 @@ function makeSky() {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(1200, 24, 16),
+    new THREE.SphereGeometry(1500, 24, 16),
     new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.BackSide,
@@ -193,6 +193,33 @@ function makeNoiseTexture(size = 256) {
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(24, 18);
   return texture;
+}
+
+function makeRiverRibbon(points: [number, number][], halfWidth: number, material: THREE.Material) {
+  const vertices: number[] = [];
+  const indices: number[] = [];
+  const n = points.length;
+  for (let i = 0; i < n; i += 1) {
+    const [x, z] = points[i];
+    const [px, pz] = points[Math.max(0, i - 1)];
+    const [nx, nz] = points[Math.min(n - 1, i + 1)];
+    let dx = nx - px;
+    let dz = nz - pz;
+    const length = Math.hypot(dx, dz) || 1;
+    dx /= length;
+    dz /= length;
+    vertices.push(x - dz * halfWidth, 0, z + dx * halfWidth);
+    vertices.push(x + dz * halfWidth, 0, z - dx * halfWidth);
+  }
+  for (let i = 0; i < n - 1; i += 1) {
+    const a = i * 2;
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return new THREE.Mesh(geometry, material);
 }
 
 function makeVehicle() {
@@ -312,7 +339,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
   scene.fog = new THREE.Fog(config.fogColor, config.fogNear, config.fogFar);
   scene.add(makeSky());
 
-  const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 1400);
+  const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 1800);
   if (!config.playerStart || typeof config.playerStart.x !== "number") {
     throw new Error("Invalid playerStart config: " + JSON.stringify(config.playerStart));
   }
@@ -495,6 +522,28 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     scene.add(rock);
   }
 
+  // Muntanya visible a l'horitzó
+  if (config.terrain.mountain) {
+    const m = config.terrain.mountain;
+    const radius = Math.max(m.rx, m.rz);
+    const mountain = new THREE.Mesh(
+      new THREE.ConeGeometry(radius, 120, 9),
+      new THREE.MeshStandardMaterial({ color: 0x7d6a55, roughness: 1 }),
+    );
+    mountain.scale.set(m.rx / radius, 1, m.rz / radius);
+    mountain.position.set(m.x, 60, m.z);
+    mountain.castShadow = true;
+    mountain.receiveShadow = true;
+    scene.add(mountain);
+    const cap = new THREE.Mesh(
+      new THREE.ConeGeometry(radius * 0.34, 34, 9),
+      new THREE.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 0.9 }),
+    );
+    cap.scale.set(m.rx / radius, 1, m.rz / radius);
+    cap.position.set(m.x, 103, m.z);
+    scene.add(cap);
+  }
+
   // Aigua visible: riu i estany
   const waterMaterial = new THREE.MeshStandardMaterial({
     color: 0x2e6f8e,
@@ -505,10 +554,7 @@ export function buildScene(canvas: HTMLCanvasElement, config: ParkConfig): Built
     side: THREE.DoubleSide,
   });
   if (config.terrain.riverPolygon) {
-    const riverPoints = config.terrain.riverPolygon.map(([x, z]) => new THREE.Vector2(x, -z));
-    const riverGeo = new THREE.ShapeGeometry(new THREE.Shape(riverPoints));
-    riverGeo.rotateX(-Math.PI / 2);
-    const river = new THREE.Mesh(riverGeo, waterMaterial);
+    const river = makeRiverRibbon(config.terrain.riverPolygon, 11, waterMaterial);
     river.position.y = 0.06;
     river.receiveShadow = true;
     scene.add(river);

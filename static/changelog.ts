@@ -1,7 +1,7 @@
 declare const __APP_COMMIT__: string | undefined;
 
 /** Versió actual de l'aplicació. Actualitza-la quan publiquis millores. */
-export const APP_VERSION = "0.7.0";
+export const APP_VERSION = "0.8.0";
 
 /** Hash curt del commit amb què s'ha generat aquest build ("dev" en local). */
 export const APP_COMMIT: string =
@@ -18,6 +18,19 @@ export type ChangelogEntry = {
 
 /** Historial de millores visible pels usuaris. Les novetats van primer. */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.8.0",
+    date: "2026-08-01",
+    title: "Mapa més gran i camins més estrets",
+    changes: [
+      "El parc Serengeti és un 50% més gran (ara fa 1350 x 1080 metres).",
+      "Camins de terra més estrets i naturals.",
+      "Muntanya amb cap de neu visible a l'horitzó.",
+      "60 clapes d'herba de colors repartides pel parc.",
+      "Més vegetació: 750 arbres i 1300 arbustos.",
+      "Riu dibuixat seguint exactament el seu curs.",
+    ],
+  },
   {
     version: "0.7.0",
     date: "2026-08-01",
