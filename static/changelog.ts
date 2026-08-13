@@ -1,7 +1,7 @@
 declare const __APP_COMMIT__: string | undefined;
 
 /** Versió actual de l'aplicació. Actualitza-la quan publiquis millores. */
-export const APP_VERSION = "0.6.0";
+export const APP_VERSION = "0.7.0";
 
 /** Hash curt del commit amb què s'ha generat aquest build ("dev" en local). */
 export const APP_COMMIT: string =
@@ -18,6 +18,20 @@ export type ChangelogEntry = {
 
 /** Historial de millores visible pels usuaris. Les novetats van primer. */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.7.0",
+    date: "2026-08-01",
+    title: "Gràfics millorats",
+    changes: [
+      "Cel amb gradient realista i núvols que deriven lentament.",
+      "Llum més càlida, ombres més suaus i contrast millorat (ACES).",
+      "Terra amb relleu i camins amb vores fosques i marques de pneumàtic.",
+      "Arbres i arbustos amb més volum i colors variats.",
+      "Riu i estany visibles amb aigua brillant.",
+      "Pols darrere del vehicle quan condueixes ràpid.",
+      "Capó, tauler, parabrisa i retrovisors del 4x4 visibles en 3D.",
+    ],
+  },
   {
     version: "0.6.0",
     date: "2026-08-01",

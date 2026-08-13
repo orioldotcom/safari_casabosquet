@@ -71,7 +71,7 @@ export function SafariV2() {
       return;
     }
     setRenderError(null);
-    const { renderer, scene, camera, player, photoTargets, animals, isBlocked, isBlockedForAnimals, cleanup } =
+    const { renderer, scene, camera, player, photoTargets, animals, vehicle, update, isBlocked, isBlockedForAnimals, cleanup } =
       sceneData;
 
     playerRef.current = player;
@@ -122,6 +122,23 @@ export function SafariV2() {
           old.geometry.dispose();
         }
       }
+    };
+
+    // Pols quan es condueix ràpid
+    const dustPool: { mesh: THREE.Mesh; life: number }[] = [];
+    const dustGeometry = new THREE.SphereGeometry(0.5, 6, 5);
+    let lastDustAt = 0;
+    const spawnDust = (x: number, z: number) => {
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xc9b189,
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(dustGeometry, material);
+      mesh.position.set(x, 0.5, z);
+      scene.add(mesh);
+      dustPool.push({ mesh, life: 1 });
     };
 
     const raycaster = new THREE.Raycaster();
@@ -305,6 +322,30 @@ export function SafariV2() {
         }
       }
 
+      // Pols darrere del vehicle quan va ràpid
+      if (Math.abs(player.speed) > 12 && now - lastDustAt > 80) {
+        lastDustAt = now;
+        const rearX = player.x - directionX * 2.4;
+        const rearZ = player.z - directionZ * 2.4;
+        spawnDust(rearX + (Math.random() - 0.5) * 1.5, rearZ + (Math.random() - 0.5) * 1.5);
+      }
+      for (let i = dustPool.length - 1; i >= 0; i -= 1) {
+        const puff = dustPool[i];
+        puff.life -= delta * 0.9;
+        puff.mesh.position.y += delta * 2.2;
+        puff.mesh.scale.multiplyScalar(1 + delta * 1.8);
+        (puff.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, puff.life * 0.4);
+        if (puff.life <= 0) {
+          scene.remove(puff.mesh);
+          (puff.mesh.material as THREE.Material).dispose();
+          dustPool.splice(i, 1);
+        }
+      }
+
+      // El cotxe 3D segueix el vehicle
+      vehicle.position.set(player.x, 0, player.z);
+      vehicle.rotation.y = player.yaw;
+
       const bob = Math.sin(now * 0.009) * Math.min(0.05, Math.abs(player.speed) * 0.004);
       if (freeMode) {
         const moveSpeed = 120 * delta;
@@ -483,6 +524,7 @@ export function SafariV2() {
         gpsRef.current.style.transform = `rotate(${targetAngle - player.yaw}rad)`;
       }
 
+      update(now, delta);
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(frame);
     };
@@ -502,6 +544,11 @@ export function SafariV2() {
         mark.geometry.dispose();
       }
       skidMaterial.dispose();
+      for (const puff of dustPool) {
+        scene.remove(puff.mesh);
+        (puff.mesh.material as THREE.Material).dispose();
+      }
+      dustGeometry.dispose();
       photoActionRef.current = null;
       cleanup();
     };
