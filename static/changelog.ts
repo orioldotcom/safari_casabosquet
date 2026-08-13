@@ -1,7 +1,7 @@
 declare const __APP_COMMIT__: string | undefined;
 
 /** Versió actual de l'aplicació. Actualitza-la quan publiquis millores. */
-export const APP_VERSION = "0.8.0";
+export const APP_VERSION = "0.8.1";
 
 /** Hash curt del commit amb què s'ha generat aquest build ("dev" en local). */
 export const APP_COMMIT: string =
@@ -18,6 +18,15 @@ export type ChangelogEntry = {
 
 /** Historial de millores visible pels usuaris. Les novetats van primer. */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.8.1",
+    date: "2026-08-01",
+    title: "Sabana més densa i camins nets",
+    changes: [
+      "Més vegetació tipus sabana: 850 arbres i 1600 arbustos.",
+      "Zona de seguretat més gran: cap arbre ni arbust a prop dels camins.",
+    ],
+  },
   {
     version: "0.8.0",
     date: "2026-08-01",

@@ -30,11 +30,11 @@ export const serengeti: ParkConfig = {
     shadowSize: 720,
   },
   vegetation: {
-    treeCount: 750,
+    treeCount: 850,
     treeSeed: 1,
     treeScaleBase: 0.55,
     treeScaleVar: 0.1,
-    bushCount: 1300,
+    bushCount: 1600,
     bushSeed: 7,
     bushScaleBase: 0.65,
     bushScaleVar: 0.15,
