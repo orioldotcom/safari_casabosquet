@@ -71,7 +71,7 @@ button { cursor: pointer; }
 .park-serengeti .park-card-art {
   background-image:
     linear-gradient(to top, rgba(24, 45, 28, .3), transparent 55%),
-    url("/safari/serengeti-map.png");
+    url("../serengeti-map.png");
 }
 .park-kruger .park-card-art {
   background:
@@ -129,7 +129,7 @@ button { cursor: pointer; }
   padding: 28px;
   background:
     linear-gradient(90deg, rgba(11, 28, 18, .94), rgba(11, 28, 18, .45)),
-    url("/safari/serengeti-map.png") center / cover;
+    url("../serengeti-map.png") center / cover;
 }
 .briefing-panel {
   width: min(760px, 100%);
@@ -235,6 +235,27 @@ button { cursor: pointer; }
   user-select: none;
 }
 .v2-canvas { width: 100%; height: 100%; display: block; }
+.v2-error {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  padding: 24px;
+  display: grid;
+  place-content: center;
+  color: #fff;
+  background: rgba(180, 30, 30, .92);
+  font-size: 14px;
+  text-align: center;
+}
+.v2-error pre {
+  max-width: 600px;
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, .35);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .v2-hud {
   position: absolute;
   top: 0;
@@ -257,8 +278,45 @@ button { cursor: pointer; }
 .v2-hud div { display: grid; gap: 2px; }
 .v2-hud span { color: #bcc5b7; font-size: 9px; font-weight: 900; letter-spacing: .14em; }
 .v2-hud strong { font-family: Georgia, serif; font-size: 18px; }
+.v2-hud .hud-right { margin-left: auto; text-align: right; }
 .v2-hud div:last-child { margin-left: auto; text-align: right; }
 .v2-hud .mission-done { color: var(--v2-accent); }
+.v2-hud .camera-mode-badge strong {
+  color: #e3ebae;
+  transition: color 0.2s ease;
+}
+.v2-hud .camera-mode-free strong { color: #7dd3fc; }
+.v2-hud .camera-mode-follow strong { color: #e3ebae; }
+
+.v2-minimap {
+  position: absolute;
+  top: 86px;
+  right: 18px;
+  z-index: 2;
+  width: 240px;
+  height: 192px;
+  border: 2px solid rgba(255, 255, 255, .3);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+  pointer-events: none;
+}
+
+@media (max-width: 850px) {
+  .v2-minimap {
+    width: 180px;
+    height: 144px;
+  }
+}
+
+@media (max-width: 560px) {
+  .v2-minimap {
+    top: 72px;
+    right: 10px;
+    width: 140px;
+    height: 112px;
+  }
+}
 
 .viewfinder {
   position: absolute;
@@ -291,39 +349,146 @@ button { cursor: pointer; }
   transition: opacity .13s ease-out;
 }
 .photo-flash.visible { opacity: .86; transition: none; }
+.cockpit-rig {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
 .jeep-cockpit {
   position: absolute;
   left: 50%;
-  bottom: -72px;
-  width: min(780px, 76vw);
-  height: 190px;
+  bottom: -90px;
+  width: min(920px, 90vw);
+  height: 230px;
   transform: translateX(-50%);
   pointer-events: none;
   background: linear-gradient(#cbb67f, #796946);
-  border: 12px solid #2c2b24;
+  border: 14px solid #2c2b24;
   border-radius: 50% 50% 8% 8%;
   box-shadow: 0 -10px 35px rgba(25, 21, 13, .28);
 }
 .jeep-cockpit span {
   position: absolute;
-  top: 35px;
+  top: 42px;
   left: 50%;
-  width: 140px;
-  height: 78px;
+  width: 170px;
+  height: 95px;
   transform: translateX(-50%);
   background: #555443;
-  border: 7px solid #272720;
-  border-radius: 12px;
+  border: 8px solid #272720;
+  border-radius: 14px;
 }
 .jeep-cockpit b {
   position: absolute;
   left: 18%;
-  top: 15px;
-  width: 105px;
-  height: 105px;
-  border: 12px solid #282820;
+  top: 18px;
+  width: 130px;
+  height: 130px;
+  border: 14px solid #282820;
   border-radius: 50%;
 }
+.dashboard-km {
+  position: absolute;
+  right: 18%;
+  top: 18px;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 14px solid #282820;
+  border-radius: 50%;
+  background: #1f1f18;
+  color: #f7f1df;
+  text-align: center;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, .35);
+}
+.dashboard-km > span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  color: #a8a28b;
+}
+.dashboard-km > strong {
+  font-family: 'Courier New', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  color: #e3ebae;
+}
+
+.steering-wheel {
+  position: absolute;
+  left: 50%;
+  bottom: 78px;
+  width: 180px;
+  height: 180px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 3;
+}
+.steering-wheel span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 13px solid #2c2b24;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #3a3830 18%, transparent 19%),
+    repeating-conic-gradient(from 0deg, #4a463a 0deg 45deg, #3d3a31 45deg 90deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+}
+.steering-wheel span::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 14px;
+  height: 38px;
+  transform: translateX(-50%);
+  background: #d8bd7a;
+  border-radius: 4px;
+}
+
+.gps {
+  position: absolute;
+  right: 170px;
+  bottom: 48px;
+  width: 100px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 3;
+  background: rgba(16, 36, 23, .88);
+  border: 3px solid rgba(255, 255, 255, .25);
+  border-radius: 50%;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .4);
+}
+.gps span {
+  position: absolute;
+  top: 12px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  color: #cddd86;
+}
+.gps b {
+  font-size: 38px;
+  color: #dceb83;
+  transform-origin: center;
+}
+
+@media (max-width: 560px) {
+  .steering-wheel { width: 120px; height: 120px; bottom: 52px; }
+  .steering-wheel span { border-width: 9px; }
+  .steering-wheel span::after { width: 9px; height: 25px; }
+  .gps { right: 120px; bottom: 30px; width: 70px; height: 70px; }
+  .gps span { top: 9px; font-size: 7px; }
+  .gps b { font-size: 26px; }
+}
+
 .v2-message {
   position: absolute;
   left: 50%;
@@ -386,6 +551,123 @@ button { cursor: pointer; }
   font-weight: 900;
 }
 
+.version-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #b8c4a5;
+  font-size: 12px;
+}
+.version-footer code {
+  padding: 1px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  font-size: 11px;
+}
+.version-changelog-link {
+  padding: 4px 12px;
+  color: #d9e69b;
+  background: transparent;
+  border: 1px solid rgba(217, 230, 155, 0.5);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.version-changelog-link:hover {
+  background: rgba(217, 230, 155, 0.12);
+}
+
+.changelog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 15, 9, 0.82);
+  backdrop-filter: blur(6px);
+}
+.changelog-panel {
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(19, 42, 27, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 30px 90px rgba(5, 13, 8, 0.5);
+  color: #eef2e2;
+  overflow: hidden;
+}
+.changelog-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.changelog-panel > header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.changelog-close {
+  width: 34px;
+  height: 34px;
+  color: #eef2e2;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.changelog-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.changelog-list {
+  padding: 8px 20px 20px;
+  overflow-y: auto;
+}
+.changelog-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.changelog-entry:last-child {
+  border-bottom: 0;
+}
+.changelog-entry > header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.changelog-entry > header strong {
+  color: #d9e69b;
+  font-size: 14px;
+}
+.changelog-entry > header span {
+  color: #8fa083;
+  font-size: 11px;
+}
+.changelog-entry h3 {
+  margin: 4px 0 8px;
+  font-size: 16px;
+}
+.changelog-entry ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.changelog-entry li {
+  margin: 3px 0;
+  color: #c9d2bb;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 @media (max-width: 850px) {
   .park-grid { grid-template-columns: 1fr; }
   .park-card { min-height: 430px; }
@@ -393,6 +675,8 @@ button { cursor: pointer; }
   .viewfinder { width: 72vw; }
   .v2-message { bottom: 126px; width: calc(100% - 32px); }
   .jeep-cockpit { width: 82vw; height: 150px; bottom: -68px; }
+  .dashboard-km { right: 10%; top: 10px; width: 84px; height: 84px; border-width: 9px; }
+  .dashboard-km > strong { font-size: 17px; }
   .v2-hud { gap: 10px; }
   .v2-hud strong { font-size: 14px; }
 }
